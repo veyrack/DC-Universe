@@ -1,0 +1,86 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: ac238ce08f22ba883487104c0a937fea8cec367137d5db174b8b27dafbe979f6
+
+name:           DCuniverse
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/DCuniverse#readme>
+homepage:       https://github.com/githubuser/DCuniverse#readme
+bug-reports:    https://github.com/githubuser/DCuniverse/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2020 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/DCuniverse
+
+library
+  exposed-modules:
+      Carte
+      Keyboard
+      Lib
+      Model
+      Sprite
+      SpriteMap
+      TextureMap
+  other-modules:
+      Paths_DCuniverse
+  hs-source-dirs:
+      src
+  build-depends:
+      StateVar >=1.2
+    , base >=4.7 && <5
+    , containers
+    , linear
+    , random
+    , sdl2
+    , sdl2-image
+  default-language: Haskell2010
+
+executable DCuniverse-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_DCuniverse
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      DCuniverse
+    , StateVar >=1.2
+    , base >=4.7 && <5
+    , containers
+    , linear
+    , random
+    , sdl2
+    , sdl2-image
+  default-language: Haskell2010
+
+test-suite DCuniverse-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_DCuniverse
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      DCuniverse
+    , StateVar >=1.2
+    , base >=4.7 && <5
+    , containers
+    , linear
+    , random
+    , sdl2
+    , sdl2-image
+  default-language: Haskell2010
