@@ -55,6 +55,26 @@ getWindow = createWindow "Dungeon Crawler Universe" $ defaultWindow { windowInit
   --return (x, y)
 
 
+loadSol:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> CInt -> CInt-> IO (TextureMap, SpriteMap) 
+loadSol renderer path tmap smap cpt posx posy= do
+  tmap' <- TM.loadTexture renderer path (TextureId ("sol"++(show cpt))) tmap
+  let sprite1 = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 16pixel
+  let sprite2 = (S.moveTo sprite1 posx posy)
+  let smap' = SM.addSprite (SpriteId ("sol"++(show cpt))) sprite2 smap
+  if posx < 780 then (loadSol renderer path tmap' smap' (cpt+1) (posx+20) posy)  -- 800 -> la hauteur et 700 la largeur
+    else if posy < 680 then (loadSol renderer path tmap' smap' (cpt+1) 0 (posy+20))
+      else return (tmap', smap') 
+      
+
+
+--if posx <= 800 then (loadSol renderer tmap smap (cpt+1) (posx+20) posy)  -- 800 -> la hauteur et 700 la largeur
+    --else if (posx>= 800 && posy>=700) then return () else (loadSol renderer tmap smap (cpt+1) 0 (posy+20))
+
+displaySol::Renderer->TextureMap -> SpriteMap -> CInt -> IO ()
+displaySol renderer tmap smap cpt = do
+  S.displaySprite renderer tmap (SM.fetchSprite (SpriteId ("sol"++(show cpt))) smap)
+  if cpt+1 == 1400 then return () else (displaySol renderer tmap smap (cpt+1))
+{--
 --Charge le sol du donjon (tous les blocs  à la position 0 0)
 loadSol:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
 loadSol rdr path tmap smap cpt = do
@@ -62,18 +82,28 @@ loadSol rdr path tmap smap cpt = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 16pixel
   let smap' = SM.addSprite (SpriteId ("sol"++(show cpt))) sprite smap
   if cpt <= 1400 then (loadSol rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 1400 -> (hauteur/tailleBloc) * (largeur /tailleBloc)
+--}
+
+--Charge les murs du dongeon
+loadMurs :: Renderer -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadMurs renderer tmap smap= do
+  (tmap, smap) <- loadMurGauche renderer "assets/mur_gauche_tuile.png" tmap smap 0
+  (tmap, smap) <- loadMurHaut renderer "assets/mur_haut.png" tmap smap 0
+  (tmap, smap) <- loadMurDroit renderer "assets/mur_droit_tuile.png" tmap smap 0
+  (tmap, smap) <- loadMurBas renderer "assets/mur_haut.png" tmap smap 0
+  return (tmap, smap)
 
 loadMurGauche:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
 loadMurGauche rdr path tmap smap cpt = do
   tmap' <- TM.loadTexture rdr path (TextureId ("murG"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murG"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 16pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murG"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("murG"++(show cpt))) sprite smap
   if cpt <= 35 then (loadMurGauche rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 35 -> (hauteur/tailleBloc) 
 
 loadMurDroit:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
 loadMurDroit rdr path tmap smap cpt = do
   tmap' <- TM.loadTexture rdr path (TextureId ("murD"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murD"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 16pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murD"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("murD"++(show cpt))) sprite smap
   if cpt <= 35 then (loadMurDroit rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 35 -> (hauteur/tailleBloc) 
 
@@ -91,19 +121,28 @@ loadMurBas rdr path tmap smap cpt = do
   let smap' = SM.addSprite (SpriteId ("murB"++(show cpt))) sprite smap
   if cpt <= 40 then (loadMurBas rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 40 ->(largeur /tailleBloc)
 
+--Chargement animation perso
+loadPerso :: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap)
+loadPerso rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId "perso") tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId "perso") (S.mkArea 0 0 25 45)
+  let smap' = SM.addSprite (SpriteId "perso") sprite smap
+  return (tmap', smap')
+
 --A la creation je place mes blocs de sol----------------------------------
 displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> IO ()
 displayBackground renderer tmap smap cpt posx posy = do
-  displaySol renderer tmap smap 0 0 0 --display le sol
-  displayMur renderer tmap smap 0 0 0--display murs
+  displaySol renderer tmap smap 0 --display le sol
+  --displayMur renderer tmap smap 0 0 0--display murs
   --display portes
 
-
+{--
 displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> IO ()
 displaySol renderer tmap smap cpt posx posy = do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sol"++(show cpt))) smap) posx posy)
   if posx <= 800 then (displaySol renderer tmap smap cpt (posx+20) posy)  -- 800 -> la hauteur et 700 la largeur
     else if (posx>= 800 && posy>=700) then return () else (displaySol renderer tmap smap cpt 0 (posy+20))
+--}
 
 displayMur :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> IO ()
 displayMur renderer tmap smap cpt posx posy = do
@@ -139,13 +178,6 @@ displayMurBas renderer tmap smap cpt posx posy = do
 
 --------------------------------------
 
-loadPerso :: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap)
-loadPerso rdr path tmap smap = do
-  tmap' <- TM.loadTexture rdr path (TextureId "perso") tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId "perso") (S.mkArea 0 0 25 45)
-  let smap' = SM.addSprite (SpriteId "perso") sprite smap
-  return (tmap', smap')
-
 
 main :: IO ()
 main = do
@@ -153,12 +185,10 @@ main = do
   window <- getWindow
   renderer <- createRenderer window (-1) defaultRenderer
   -- chargement de l'image du fond
-  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap 0
+  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap 0 0 0
   --chargement des mur (Autour de la fenêtre)
-  (tmap, smap) <- loadMurGauche renderer "assets/mur_gauche_tuile.png" tmap smap 0
-  (tmap, smap) <- loadMurHaut renderer "assets/mur_haut.png" tmap smap 0
-  (tmap, smap) <- loadMurDroit renderer "assets/mur_droit_tuile.png" tmap smap 0
-  (tmap, smap) <- loadMurBas renderer "assets/mur_haut.png" tmap smap 0
+  --(tmap, smap) <- loadMurs renderer tmap smap
+ 
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
 
@@ -166,8 +196,8 @@ main = do
   --Position du jouer (Random pour l'instant)
   vx <- randomRIO (50,526) :: IO Int
   vy <- randomRIO (50,292) :: IO Int
-  --taille de la fenetre du client
-  --(wx,wy) <- (sizeWindows window)
+
+--Initialisation de l'etat du jeu
   let gameState = M.initGameState vx vy (fromIntegral largeurWin) (fromIntegral hauteurWin)
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -181,11 +211,13 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   let kbd' = K.handleEvents events kbd
   clear renderer
   --- display toutes les couches du background
-  displayBackground renderer tmap smap 0 0 0
+  displayBackground renderer tmap smap 110 0 0
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  (fromIntegral (M.persoX gameState))
                                  (fromIntegral (M.persoY gameState)))
+
+ 
 
   present renderer
   endTime <- time

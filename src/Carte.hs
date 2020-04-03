@@ -18,6 +18,8 @@ data Coord = Coord { cx :: Int, cy ::Int} deriving Eq
 
 data Terrain = Terrain {ht :: Int, lg ::Int, contenu :: (M.Map Coord Case)} --ht = hauteur , lg = largeur
 
+initTerrain :: Int -> Int -> Map Coord Case -> Terrain
+initTerrain ht lg contenu = Terrain ht lg contenu
 --Initialise le terrain : Dans le loadTerrain du main, j'ajoute les infos du terrain ici
 
 --createTerrain:: TextureId -> Image

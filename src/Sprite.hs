@@ -92,3 +92,6 @@ displaySprite rdr tmap sp@(Sprite imgs cur dest) =
       let txt = TM.fetchTexture tid tmap
       R.copy rdr txt Nothing (Just dest)
 
+getDestArea:: Sprite -> Area
+getDestArea sp@(Sprite imgs cur area)  = area
+  
