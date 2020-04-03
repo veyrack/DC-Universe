@@ -36,6 +36,10 @@ import Control.Monad.IO.Class
 import Data.StateVar
 
 import System.Random
+import Data.Map
+import qualified Data.Map.Strict as Map
+
+import Carte
 
 --Screen size
 hauteurWin :: CInt
@@ -70,22 +74,23 @@ displaySol renderer tmap smap cpt = do
   if cpt+1 == 1400 then return () else (displaySol renderer tmap smap (cpt+1))
   
 --Charge les murs du dongeon
-loadMurs :: Renderer -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadMurs :: Renderer -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap,Map Coord Case) 
 loadMurs renderer tmap smap= do
-  (tmap, smap) <- loadMurGauche renderer "assets/mur_gauche_tuile.png" tmap smap 0 0 0
+  (tmap, smap,carte) <- loadMurGauche renderer "assets/mur_gauche_tuile.png" tmap smap 0 0 0 empty
   (tmap, smap) <- loadMurHaut renderer "assets/mur_haut.png" tmap smap 0 0 0
-  (tmap, smap) <- loadMurDroit renderer "assets/mur_droit_tuile.png" tmap smap 0 (800-20) 0
-  (tmap, smap) <- loadMurBas renderer "assets/mur_haut.png" tmap smap 0 0 (700-20)
-  return (tmap, smap)
+  (tmap, smap) <- loadMurDroit renderer "assets/mur_droit_tuile.png" tmap smap 0 780 0
+  (tmap, smap) <- loadMurBas renderer "assets/mur_haut.png" tmap smap 0 0 680
+  return (tmap, smap, carte)
 
-loadMurGauche :: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> IO (TextureMap, SpriteMap) 
-loadMurGauche renderer path tmap smap cpt posx posy= do
+loadMurGauche :: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> CInt -> CInt-> Map Coord Case -> IO (TextureMap, SpriteMap,Map Coord Case) 
+loadMurGauche renderer path tmap smap cpt posx posy carte= do
   tmap' <- TM.loadTexture renderer path (TextureId ("murG"++(show cpt))) tmap
-  let sprite1 = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murG"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 16pixel
+  let sprite1 = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murG"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
   let sprite2 = (S.moveTo sprite1 posx posy)
   let smap' = SM.addSprite (SpriteId ("murG"++(show cpt))) sprite2 smap
-  if posy <= (700-20) then (loadMurGauche renderer path tmap' smap' (cpt+1) 0 (posy+20))  -- 700 -> la largeur
-    else return (tmap',smap')
+  let newcarte = Map.insert (Coord posx posy) Mur carte --On insere les coordonnées du mur dans la map
+  if posy <= (700-20) then (loadMurGauche renderer path tmap' smap' (cpt+1) 0 (posy+20) newcarte)  -- 700 -> la largeur
+    else return (tmap',smap',carte)
       
 displayMurGauche::Renderer->TextureMap -> SpriteMap -> CInt -> IO ()
 displayMurGauche renderer tmap smap cpt = do
@@ -169,17 +174,18 @@ main = do
   -- chargement de l'image du fond
   (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap 0 0 0
   --chargement des mur (Autour de la fenêtre)
-  (tmap, smap) <- loadMurs renderer tmap smap
- 
+  (tmap, smap, carte) <- loadMurs renderer tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
 
   -- initialisation de l'état du jeu
+  let terrain = initTerrain 35 40 carte
+  print (carte)
   --Position du jouer (Random pour l'instant)
   vx <- randomRIO (50,526) :: IO Int
   vy <- randomRIO (50,292) :: IO Int
 
---Initialisation de l'etat du jeu
+  --Initialisation de l'etat du jeu
   let gameState = M.initGameState vx vy (fromIntegral largeurWin) (fromIntegral hauteurWin)
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
