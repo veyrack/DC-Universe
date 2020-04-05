@@ -18,7 +18,7 @@ data Case = Vide
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
 
-data Terrain = Terrain {ht :: Int, lg ::Int, contenu :: (M.Map Coord Case)} --ht = hauteur , lg = largeur
+data Terrain = Terrain {ht :: Int, lg ::Int, contenu :: (M.Map Coord Case)} deriving (Show) --ht = hauteur , lg = largeur
 
 initTerrain :: Int -> Int -> Map Coord Case -> Terrain
 initTerrain ht lg contenu = Terrain ht lg contenu

@@ -21,21 +21,16 @@ initGameState :: Int ->Int ->Int -> Int -> GameState
 initGameState vx vy wx wy = GameState vx vy 4 wx wy
 
 moveLeft :: GameState -> GameState
-moveLeft gs@(GameState px _ sp _ _) | px > 0 = gs { persoX = px - sp }
-                                | otherwise = gs
+moveLeft gs@(GameState px _ sp _ _) = gs { persoX = px + sp }
 
 moveRight :: GameState -> GameState
-moveRight gs@(GameState px _ sp wx _) | px < wx-25 = gs { persoX = px + sp }
-                                 | otherwise = gs
-
+moveRight gs@(GameState px _ sp wx _) = gs { persoX = px - sp }
                               
 moveUp :: GameState -> GameState
-moveUp gs@(GameState _ py sp _ _) | py > 0 = gs { persoY = py - sp }
-                              | otherwise = gs
+moveUp gs@(GameState _ py sp _ _) = gs { persoY = py + sp }
 
 moveDown :: GameState -> GameState
-moveDown gs@(GameState _ py sp _ wy) | py < wy-45 = gs { persoY = py + sp }
-                                | otherwise = gs
+moveDown gs@(GameState _ py sp _ wy) = gs { persoY = py - sp }
 
 collision :: GameState -> Bool
 collision gs@(GameState px py _ cx cy) = px < cx + 64 
