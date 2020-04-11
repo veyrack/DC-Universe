@@ -236,7 +236,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
                                  persoX
                                 persoY)
   
-  M.collision2 gameState
+  --M.collision2 gameState
   --print (gameState)
   present renderer
   endTime <- time
@@ -246,7 +246,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   endTime <- time
   let deltaTime = endTime - startTime
   --putStrLn $ "Delta time: " <> (show (deltaTime * 1000)) <> " (ms)"
-  --putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
+  putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
   --- update du game state----
   
   let terrain= initTerrain 750 800 carte -- A ajouter à l'état du jeu - > la map change constament 
