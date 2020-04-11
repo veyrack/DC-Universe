@@ -13,61 +13,58 @@ import Foreign.C.Types (CInt (..) )
 import Keyboard (Keyboard)
 import qualified Keyboard as K
 
+--Transx : Correspond au déplacement sur l'axe des x du personnage (En réalité, c'est l'environnement qui se "deplace")
+--Transy: Pareil que Transx mais sur l'axe des y
 
+--PersoX: L'axe x où se situe le personnage
+--PersoY: L'axe des y où se situe le personnage
 
-data GameState = GameState { persoX :: Int
-                           , persoY :: Int
+data GameState = GameState { transX :: Int
+                           , transY :: Int
                            ,speed ::Int
+                           , persoX :: CInt 
+                           , persoY :: CInt
                            ,carte::Map Coord Case
-                           , winx :: Int 
-                           , winy :: Int}
+                           }
   deriving (Show)
 
 
 
-initGameState :: Int ->Int ->Int -> Int-> Map Coord Case -> GameState
-initGameState vx vy wx wy carte = GameState vx vy 4 carte wx wy
+initGameState :: Int ->Int ->CInt -> CInt-> Map Coord Case -> GameState
+initGameState tx ty px py carte = GameState tx ty 4 px py carte
 
 refreshMap:: GameState -> Map Coord Case -> GameState
-refreshMap gs@(GameState px py sp _ _ _) c = gs {persoX = px, persoY=py, speed=sp, carte=c}
+refreshMap gs@(GameState tx ty sp px py _) c = gs {transX = tx, transY=ty, speed=sp ,carte=c}
 
---A chaque déplacement du personnage, les coordonnées de la map change
+--Deplacement du personnage (Ici, le déplacement du personnage est en réalité une translation de l'environnement, soit un scrolling)
 moveLeft :: GameState -> Map Coord Case -> GameState
-moveLeft gs@(GameState px py sp _ _ _) c = if (collision gs (((70- (fromIntegral px))-4)`div`20) ((70- (fromIntegral py))`div`20)) then gs else gs { persoX = px + sp, carte = c}
+moveLeft gs@(GameState tx ty sp px py _) c = if (collision gs (((px- (fromIntegral tx))-4)`div`20) ((py- (fromIntegral ty))`div`20)) then gs else gs { transX = tx + sp, carte = c}
 
 moveRight :: GameState -> Map Coord Case -> GameState
-moveRight gs@(GameState px py sp _ wx _ ) c = if (collision gs (((70- (fromIntegral px))+24)`div`20) ((70- (fromIntegral py))`div`20)) then gs else gs { persoX = px - sp , carte = c}
+moveRight gs@(GameState tx ty sp px py _) c = if (collision gs ((((px+25)- (fromIntegral tx)))`div`20) ((py- (fromIntegral ty))`div`20)) then gs else gs { transX = tx - sp , carte = c}
                               
 moveUp :: GameState-> Map Coord Case -> GameState
-moveUp gs@(GameState px py sp _ _ _ ) c = if (collision gs ((70- (fromIntegral px))`div`20) (((70- (fromIntegral py))-4)`div`20)) then gs else gs { persoY = py + sp , carte = c}
+moveUp gs@(GameState tx ty sp px py _) c = if (collision gs ((px- (fromIntegral tx))`div`20) (((py- (fromIntegral ty))-4)`div`20)) then gs else gs { transY = ty + sp , carte = c}
 
 moveDown :: GameState -> Map Coord Case -> GameState
-moveDown gs@(GameState px py sp _ _ wy ) c = if (collision gs ((70- (fromIntegral px))`div`20) (((70- (fromIntegral py))+44)`div`20)) then gs else gs { persoY = py - sp , carte = c}
+moveDown gs@(GameState tx ty sp px py _ ) c = if (collision gs ((px- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20)) then gs else gs { transY = ty - sp , carte = c}
 
 collision :: GameState ->CInt -> CInt -> Bool
-collision gs@(GameState px py _ c wx wy) x y = (case (Map.lookup (Coord x y) c) of
+collision gs@(GameState _ _ _ _ _ c ) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> True
                                                 Just Entree -> False
                                                 Just Sortie -> False
                                                 Nothing -> False)
---Verifie la collision pour une tile (car tile=20px et le perso se déplace à 4pixel)
---posx commence à persoX-20
---test move up
-checkTiles:: GameState ->CInt -> CInt ->CInt -> CInt -> Bool
-checkTiles gs posx posy finx finy
-                              | posx==finx = True
-                              | collision gs posx posy ==False = False
-                              | otherwise = checkTiles gs (posx+4) posy finx finy
-                              
-basictest:: GameState -> CInt -> CInt -> Bool
-basictest gs px py = 70 < px + 20 && 70 + 20 > px && 70 < py + 20 && 20 + 70 > py
 
+----Outil de debuguage-------------
 
+--renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
-collision2 gs@(GameState px py _ c wx wy) = do
-  let value= (Map.lookup (Coord ((70- (fromIntegral px))`div`20) ((70- (fromIntegral py))`div`20) ) c)
-  print ("--------", Coord (70-(fromIntegral px)) (70-(fromIntegral py)), value, "-----------")
+collision2 gs@(GameState tx ty _ px py c ) = do
+  let value= (Map.lookup (Coord ((px- (fromIntegral tx))`div`20) ((py- (fromIntegral ty))`div`20) ) c)
+  print ("--------", (Coord ((px- (fromIntegral tx))`div`20) ((py- (fromIntegral ty))`div`20) ), value, "-----------")
 
+----------------------------------
 
 
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> Map Coord Case -> GameState

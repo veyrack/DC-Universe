@@ -48,19 +48,27 @@ hauteurWin = 700
 largeurWin:: CInt
 largeurWin = 800
 
---size du dongeon
+--size of the dungeon
 hauteurDj :: CInt
-hauteurDj = 300
+hauteurDj = 700
 
 largeurDj:: CInt
-largeurDj = 300
+largeurDj = 700
 
 --Nombre de blocs en hauteur
 blocHauteur::CInt
 blocHauteur = hauteurDj `div` 20 --20pixel pour un bloc
+
 --Nombre de blocs en largeur
 blocLargeur::CInt
 blocLargeur = largeurDj `div` 20 --20pixel pour un bloc
+
+--Position du personnage
+persoX::CInt
+persoX = largeurDj `div` 2
+
+persoY::CInt
+persoY = hauteurDj `div` 2
 
 --Renvoie la fenêtre de l'écran
 getWindow:: MonadIO m => m Window
@@ -120,16 +128,17 @@ displayBackground renderer tmap smap cpt transx trany carte= do
 displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
 displaySol renderer tmap smap cpt posx posy transx transy= do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sol"++(show cpt))) smap) (posx+transx) (posy+transy))
-  if posx < (largeurDj-20) then (displaySol renderer tmap smap cpt (posx+20) posy transx transy )  -- 800 -> la hauteur et 700 la largeur
+  if posx < (largeurDj-20) then (displaySol renderer tmap smap cpt (posx+20) posy transx transy ) 
     else if posy < (hauteurDj-20) then (displaySol renderer tmap smap cpt 0 (posy+20) transx transy)
       else return () 
 
+--Affiche l'ensemble les murs présent sur la carte
 displayMur :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
 displayMur renderer tmap smap cpt posx posy transx transy carte= do
      carte <- displayMurHaut renderer tmap smap cpt posx posy transx transy carte
      carte <- displayMurGauche renderer tmap smap cpt posx posy transx transy carte
-     carte <- displayMurDroit renderer tmap smap cpt (largeurDj-20) posy transx transy carte
-     carte <- displayMurBas renderer tmap smap cpt posx (hauteurDj-20) transx transy carte
+     carte <- displayMurDroit renderer tmap smap cpt posx posy transx transy carte
+     carte <- displayMurBas renderer tmap smap cpt posx posy transx transy carte
      return carte
 
 displayMurDroit::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
@@ -184,12 +193,12 @@ main = do
   (tmap, smap) <- loadMurDroit renderer "assets/murtest.png" tmap smap 0
   (tmap, smap) <- loadMurBas renderer "assets/murtest.png" tmap smap 0
   -- chargement du personnage
-  (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
+  (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
   -- initialisation de l'état du jeu
   --taille de la fenetre du client
   --(wx,wy) <- (sizeWindows window)
-  let gameState = M.initGameState 0 0 1000 1000 empty --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState 0 0 persoX persoY empty --px et py sont les coordonnées de la map placé sur l'écran
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
   -- lancement de la gameLoop
@@ -203,12 +212,12 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   clear renderer
   --- display toutes les couches du background
  
-  carte <- displayBackground renderer tmap smap 0 (fromIntegral (M.persoX gameState)) (fromIntegral (M.persoY gameState)) empty
-  --print (carte)
+  carte <- displayBackground renderer tmap smap 0 (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) empty
+
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
-                                 70
-                                 70)
+                                 persoX
+                                persoY)
   
   M.collision2 gameState
   --print (gameState)
