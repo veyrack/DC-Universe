@@ -38,16 +38,34 @@ refreshMap gs@(GameState tx ty sp px py _) c = gs {transX = tx, transY=ty, speed
 
 --Deplacement du personnage (Ici, le déplacement du personnage est en réalité une translation de l'environnement, soit un scrolling)
 moveLeft :: GameState -> Map Coord Case -> GameState
-moveLeft gs@(GameState tx ty sp px py _) c = if (collision gs (((px- (fromIntegral tx))-4)`div`20) ((py- (fromIntegral ty))`div`20)) then gs else gs { transX = tx + sp, carte = c}
+moveLeft gs@(GameState tx ty sp px py _) c = if (collision gs (((px- (fromIntegral tx))-4)`div`20) ((py- (fromIntegral ty))`div`20)) --collision coin haut gauche
+                                              || (collision gs (((px- (fromIntegral tx))-4)`div`20) (((py+45)- (fromIntegral ty))`div`20)) --collision coin bas gauche
+                                              || (collision gs (((px- (fromIntegral tx))-4)`div`20) (((py+23)- (fromIntegral ty))`div`20)) --collision milieu gauche
+                                              then gs else gs { transX = tx + sp, carte = c}
 
 moveRight :: GameState -> Map Coord Case -> GameState
-moveRight gs@(GameState tx ty sp px py _) c = if (collision gs ((((px+25)- (fromIntegral tx)))`div`20) ((py- (fromIntegral ty))`div`20)) then gs else gs { transX = tx - sp , carte = c}
+moveRight gs@(GameState tx ty sp px py _) c = if (collision gs ((((px+25)- (fromIntegral tx))+4)`div`20) (((py+22)- (fromIntegral ty))`div`20)) --collision milieu droit
+                                                || (collision gs ((((px+25)- (fromIntegral tx))+4)`div`20) ((py- (fromIntegral ty))`div`20))--collision coin haut droit
+                                                || (collision gs ((((px+25)- (fromIntegral tx))+4)`div`20) (((py+45)- (fromIntegral ty))`div`20)) --collision coin bas droit
+                                                then gs else gs { transX = tx - sp , carte = c}
                               
 moveUp :: GameState-> Map Coord Case -> GameState
-moveUp gs@(GameState tx ty sp px py _) c = if (collision gs ((px- (fromIntegral tx))`div`20) (((py- (fromIntegral ty))-4)`div`20)) then gs else gs { transY = ty + sp , carte = c}
+moveUp gs@(GameState tx ty sp px py _) c = if (collision gs ((px- (fromIntegral tx))`div`20) (((py- (fromIntegral ty))-4)`div`20))
+                                          || (collision gs (((px+25)- (fromIntegral tx))`div`20) (((py- (fromIntegral ty))-4)`div`20))
+                                          || (collision gs (((px+12)- (fromIntegral tx))`div`20) (((py- (fromIntegral ty))-4)`div`20))
+                                          then gs else gs { transY = ty + sp , carte = c}
 
 moveDown :: GameState -> Map Coord Case -> GameState
-moveDown gs@(GameState tx ty sp px py _ ) c = if (collision gs ((px- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20)) then gs else gs { transY = ty - sp , carte = c}
+moveDown gs@(GameState tx ty sp px py _ ) c = if (collision gs ((px- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20))
+                                              || (collision gs (((px+12)- (fromIntegral tx))`div`20) ((((py+22)- (fromIntegral ty))+4)`div`20))
+                                              || (collision gs (((px+25)- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20))
+                                              then gs else gs { transY = ty - sp , carte = c}
+
+
+collisionTile :: GameState -> Map Coord Case -> Bool
+collisionTile gs@(GameState tx ty sp px py _ ) c 
+                                                | (collision gs (((px- (fromIntegral tx))-4)`div`20) ((py- (fromIntegral ty))`div`20)) == True = True
+                                                |
 
 collision :: GameState ->CInt -> CInt -> Bool
 collision gs@(GameState _ _ _ _ _ c ) x y = (case (Map.lookup (Coord x y) c) of

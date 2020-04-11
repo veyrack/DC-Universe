@@ -116,11 +116,20 @@ loadMurBas rdr path tmap smap cpt = do
   let smap' = SM.addSprite (SpriteId ("murB"++(show cpt))) sprite smap
   if cpt <= blocLargeur then (loadMurBas rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 40 ->(largeur /tailleBloc)
 
+--Charge un coffre
+loadCoffre:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
+loadCoffre rdr path tmap smap cpt = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("coffre")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffre")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("coffre")) sprite smap
+  return (tmap', smap')
+
 --A la creation je place mes blocs de sol----------------------------------
 displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
 displayBackground renderer tmap smap cpt transx trany carte= do
   displaySol renderer tmap smap 0 0 0 transx trany --display le sol
   carte <- displayMur renderer tmap smap 0 0 0 transx trany carte--display murs
+  carte <- displayCoffre renderer tmap smap 0 400 400 transx trany carte--display murs
   return carte
   --display portes
 
@@ -170,6 +179,12 @@ displayMurBas renderer tmap smap cpt posx posy transx transy carte= do
   if posx < (largeurDj-20) then (displayMurBas renderer tmap smap cpt (posx+20) (hauteurDj-20) transx transy newcarte)  -- 700 -> la largeur
     else return (carte)
 
+displayCoffre::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
+displayCoffre renderer tmap smap cpt posx posy transx transy carte= do
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffre")) smap) (posx+transx) (posy+transy))
+  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
+  return newcarte
+
 --------------------------------------
 
 loadPerso :: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap)
@@ -192,6 +207,8 @@ main = do
   (tmap, smap) <- loadMurHaut renderer "assets/murtest.png" tmap smap 0
   (tmap, smap) <- loadMurDroit renderer "assets/murtest.png" tmap smap 0
   (tmap, smap) <- loadMurBas renderer "assets/murtest.png" tmap smap 0
+  --chargement des coffres
+  (tmap, smap) <- loadCoffre renderer "assets/coffre2.png" tmap smap 0
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
