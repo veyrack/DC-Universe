@@ -208,7 +208,7 @@ main = do
   (tmap, smap) <- loadMurDroit renderer "assets/murtest.png" tmap smap 0
   (tmap, smap) <- loadMurBas renderer "assets/murtest.png" tmap smap 0
   --chargement des coffres
-  (tmap, smap) <- loadCoffre renderer "assets/coffre2.png" tmap smap 0
+  (tmap, smap) <- loadCoffre renderer "assets/coffre.png" tmap smap 0
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 

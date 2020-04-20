@@ -1,0 +1,26 @@
+-----Bug-----
+
+-> Regler probleme collision vers le bas (Parfois ça passe si on insiste bien)
+
+
+----A faire---
+-> Generateur de labyrinthes
+-> Ouverture de coffre: action avec la touche "E" + display coffre ouvert
+    ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
+-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme
+->Sortie du labyrinthe: si sortie, jeu terminé
+
+-> Personnage:
+    ->display de direction: animation de changement de direction.
+    ->dispaly de ramassage de stuff: get key,sword.. (à la zelda)
+    ->display vie du personnage (Afficher une barre de vie)
+
+-> IA mob:
+    -> ???
+
+->Evenemenet particuler: 
+    -> esclalier: Passage au labyrinthe suivant.
+
+-> Etat de jeu:
+    -> Si perso perds de la vie: fin du jeu
+    ->Si perso tombe dans un piège: perte de 80% de la vie
