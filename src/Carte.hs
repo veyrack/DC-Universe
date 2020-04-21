@@ -18,11 +18,25 @@ data Case = Vide
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
 
-data Terrain = Terrain {ht :: Int, lg ::Int, contenu :: (M.Map Coord Case)} deriving (Show) --ht = hauteur , lg = largeur
+data Terrain = Terrain {ht :: CInt, lg ::CInt, contenu :: (M.Map Coord Case)} deriving (Show) --ht = hauteur , lg = largeur
 
-initTerrain :: Int -> Int -> Map Coord Case -> Terrain
+initTerrain :: CInt -> CInt -> Map Coord Case -> Terrain
 initTerrain ht lg contenu = Terrain ht lg contenu
 --Initialise le terrain : Dans le loadTerrain du main, j'ajoute les infos du terrain ici
 
---createTerrain:: TextureId -> Image
---createTerrain = 
+
+terrainGenerator :: FilePath -> IO (Terrain)
+terrainGenerator fp = do
+    file <- readFile fp --string
+    let (contenu,ht,lg) = createTheMap file M.empty 0 0 0
+    return (initTerrain ht lg contenu)
+
+
+--Mutliplier les valeurs x et y par 20 (taille d'une case)
+
+--Pour l'instant crée que les murs
+createTheMap :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> (M.Map Coord Case, CInt, CInt)
+createTheMap [] mymap x y lg= (mymap, y, lg)
+createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mymap 0 (y+20) lg --lg bouge pas car ici c'est la condition du retour à la ligne
+                                 | a=='x' = createTheMap as (M.insert (Coord x y) Mur mymap) (x+20) y (if lg< x then x else lg )
+                                 |otherwise = createTheMap as mymap (x+20) y lg --lg bouge pas ici car c'est la conditions pour les espaces

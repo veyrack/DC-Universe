@@ -47,10 +47,7 @@ moveUp :: GameState-> Map Coord Case -> GameState
 moveUp gs@(GameState tx ty sp px py _) c = if (collisionTileUp gs px py c) then gs else gs { transY = ty + sp , carte = c}
 
 moveDown :: GameState -> Map Coord Case -> GameState
-moveDown gs@(GameState tx ty sp px py _ ) c = if (collision gs ((px- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20))
-                                              || (collision gs (((px+12)- (fromIntegral tx))`div`20) ((((py+22)- (fromIntegral ty))+4)`div`20))
-                                              || (collision gs (((px+25)- (fromIntegral tx))`div`20) ((((py+45)- (fromIntegral ty))+4)`div`20))
-                                              then gs else gs { transY = ty - sp , carte = c}
+moveDown gs@(GameState tx ty sp px py _ ) c = if (collisionTileDown gs px py c) then gs else gs { transY = ty - sp , carte = c}
 
 collisionTileLeft :: GameState -> CInt -> CInt -> Map Coord Case -> Bool
 collisionTileLeft gs@(GameState tx ty sp px py _ ) x y c  | (collision gs (((px- (fromIntegral tx))-4)`div`20) ((py- (fromIntegral ty))`div`20)) == True = True
