@@ -5,6 +5,7 @@
 ----A faire---
 
 -> Generateur de labyrinthes /!En cours!\
+    ->Generer ennemis
 -> Ouverture de coffre: action avec la touche "E" + display coffre ouvert /!\
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
 -> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
@@ -32,4 +33,6 @@
     ->Si perso tombe dans un piège: perte de 80% de la vie
 
 ---Optimisations----
-Displays Mur, coffres etc.. -> En une seul fonction en O(n)?
+ -> Displays Mur, coffres etc.. : En une seul fonction en O(n)?
+ -> La case du sol en 0 0 a faire disparaître si aucun mur
+    -> On fais commencer le sol à (0,0), faut changer ça
