@@ -80,112 +80,6 @@ getWindow = createWindow "Dungeon Crawler Universe" $ defaultWindow { windowInit
   --let (V2 x y) = stateValue
   --return (x, y)
 
---Charge le sol du donjon (tous les blocs  à la position 0 0)
-loadSol:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadSol rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("sol"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("sol"++(show cpt))) sprite smap
-  if cpt <= (blocHauteur*blocLargeur) then (loadSol rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 1400 -> (hauteur/tailleBloc) * (largeur /tailleBloc)
-
-loadMurGauche:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadMurGauche rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("murG"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murG"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("murG"++(show cpt))) sprite smap
-  if cpt <= blocHauteur then (loadMurGauche rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 35 -> (hauteur/tailleBloc) 
-
-loadMurDroit:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadMurDroit rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("murD"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murD"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("murD"++(show cpt))) sprite smap
-  if cpt <= blocHauteur then (loadMurDroit rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 35 -> (hauteur/tailleBloc) 
-
-loadMurHaut:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadMurHaut rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("murH"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murH"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("murH"++(show cpt))) sprite smap
-  if cpt <= blocLargeur then (loadMurHaut rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 40 ->(largeur /tailleBloc)
-
-loadMurBas:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadMurBas rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("murB"++(show cpt))) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("murB"++(show cpt))) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("murB"++(show cpt))) sprite smap
-  if cpt <= blocLargeur then (loadMurBas rdr path tmap' smap' (cpt+1)) else return (tmap', smap') -- 40 ->(largeur /tailleBloc)
-
---Charge un coffre
-loadCoffre:: Renderer-> FilePath -> TextureMap -> SpriteMap -> CInt -> IO (TextureMap, SpriteMap) 
-loadCoffre rdr path tmap smap cpt = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("coffre")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffre")) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("coffre")) sprite smap
-  return (tmap', smap')
-
---A la creation je place mes blocs de sol----------------------------------
-displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayBackground renderer tmap smap cpt transx trany carte= do
-  displaySol renderer tmap smap 0 0 0 transx trany --display le sol
-  carte <- displayMur renderer tmap smap 0 0 0 transx trany carte--display murs
-  carte <- displayCoffre renderer tmap smap 0 400 400 transx trany carte--display murs
-  return carte
-  --display portes
-
---Retirer carte pour displaySol car pas besoin de sa position
-displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
-displaySol renderer tmap smap cpt posx posy transx transy= do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sol"++(show cpt))) smap) (posx+transx) (posy+transy))
-  if posx < (largeurDj-20) then (displaySol renderer tmap smap cpt (posx+20) posy transx transy ) 
-    else if posy < (hauteurDj-20) then (displaySol renderer tmap smap cpt 0 (posy+20) transx transy)
-      else return () 
-
---Affiche l'ensemble les murs présent sur la carte
-displayMur :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayMur renderer tmap smap cpt posx posy transx transy carte= do
-     carte <- displayMurHaut renderer tmap smap cpt posx posy transx transy carte
-     carte <- displayMurGauche renderer tmap smap cpt posx posy transx transy carte
-     carte <- displayMurDroit renderer tmap smap cpt posx posy transx transy carte
-     carte <- displayMurBas renderer tmap smap cpt posx posy transx transy carte
-     return carte
-
-displayMurDroit::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayMurDroit renderer tmap smap cpt posx posy transx transy carte= do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("murD"++(show cpt))) smap) (posx+transx) (posy+transy))
-  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
-  if posy < (hauteurDj-20) then (displayMurDroit renderer tmap smap cpt (largeurDj-20) (posy+20) transx transy newcarte)  -- 800 -> la dernière case (en haut a droite )
-    else return (carte)
-
-
-displayMurGauche::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayMurGauche renderer tmap smap cpt posx posy transx transy carte = do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("murG"++(show cpt))) smap) (posx+transx) (posy+transy))
-  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
-  if posy < (hauteurDj-20) then (displayMurGauche renderer tmap smap cpt 0 (posy+20) transx transy newcarte)  -- 700 -> la largeur
-    else return (carte)
-
-displayMurHaut::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayMurHaut renderer tmap smap cpt posx posy transx transy carte= do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("murH"++(show cpt))) smap) (posx+transx) (posy+transy))
-  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
-  if posx < (largeurDj-20) then (displayMurHaut renderer tmap smap cpt (posx+20) 0 transx transy newcarte)  -- 700 -> la largeur
-    else return (carte)
-
-displayMurBas::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayMurBas renderer tmap smap cpt posx posy transx transy carte= do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("murB"++(show cpt))) smap) (posx+transx) (posy+transy))
-  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
-  if posx < (largeurDj-20) then (displayMurBas renderer tmap smap cpt (posx+20) (hauteurDj-20) transx transy newcarte)  -- 700 -> la largeur
-    else return (carte)
-
-displayCoffre::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO (Map Coord Case)
-displayCoffre renderer tmap smap cpt posx posy transx transy carte= do
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffre")) smap) (posx+transx) (posy+transy))
-  let newcarte = Map.insert (Coord (posx`div` 20) (posy`div`20)) Mur carte --On insere les coordonnées du mur dans la map
-  return newcarte
-
---------------------------------------
 
 loadPerso :: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap)
 loadPerso rdr path tmap smap = do
@@ -194,28 +88,99 @@ loadPerso rdr path tmap smap = do
   let smap' = SM.addSprite (SpriteId "perso") sprite smap
   return (tmap', smap')
 
+--Charge le sol du donjon (tous les blocs sont à la position 0 0)
+loadSol:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadSol rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("sol")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("sol")) sprite smap
+  return (tmap', smap')
+
+--Charge les murs du donjon (tous les blocs sont à la position 0)
+loadMurs:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadMurs rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("mur")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("mur")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("mur")) sprite smap
+  return (tmap', smap')
+
+
+--Charge un coffre
+loadCoffre:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadCoffre rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("coffre")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffre")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("coffre")) sprite smap
+  return (tmap', smap')
+
+-----------------------A la creation je place mes blocs ----------------------------------
+
+--Affiche tous les blocs
+displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> Map Coord Case -> IO ()
+displayBackground renderer tmap smap cpt ht lg transx trany carte= do
+  displaySol renderer tmap smap 0 0 ht lg transx trany --display le sol
+  displayMurs renderer tmap smap carte transx trany--display murs
+  displayCoffre renderer tmap smap carte transx trany--display coffres
+  return ()
+  --display portes
+
+--Affiche le sol
+displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
+displaySol renderer tmap smap posx posy ht lg transx transy= do
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sol")) smap) (posx+transx) (posy+transy))
+  if posx < (lg-20) then (displaySol renderer tmap smap (posx+20) posy  ht lg transx transy ) 
+    else if posy < (ht-20) then (displaySol renderer tmap smap 0 (posy+20)  ht lg transx transy)
+      else return ()
+
+--Affiche les murs
+
+--Affiche les murs
+displayMurs::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayMurs renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Mur)) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("mur")) smap) ((x*20)+transx) ((y*20)+transy))
+                              test as
+
+--Affiches les coffres
+displayCoffre::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayCoffre renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Coffre)) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffre")) smap) ((x*20)+transx) ((y*20)+transy))
+                              test as
+
+--------------------------------------
 
 main :: IO ()
 main = do
   initializeAll
   window <- getWindow
   renderer <- createRenderer window (-1) defaultRenderer
-  -- chargement de l'image du fond
-  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap 0
-  --chargement des mur (Autour de la fenêtre)
-  (tmap, smap) <- loadMurGauche renderer "assets/murtest.png" tmap smap 0
-  (tmap, smap) <- loadMurHaut renderer "assets/murtest.png" tmap smap 0
-  (tmap, smap) <- loadMurDroit renderer "assets/murtest.png" tmap smap 0
-  (tmap, smap) <- loadMurBas renderer "assets/murtest.png" tmap smap 0
+
+  --Generation d'un terrain à partir d'un fichier
+  terrain <-terrainGenerator "src/test.txt"
+  let (Terrain ht lg contenu)= terrain
+
+  -- chargement du sol
+  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
+  --chargement des murs
+  (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap--Ici, il faudra une fonction pour optenir le nombre de mur dans la map
+
   --chargement des coffres
-  (tmap, smap) <- loadCoffre renderer "assets/coffre.png" tmap smap 0
+  (tmap, smap) <- loadCoffre renderer "assets/coffre.png" tmap smap
+  
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
   -- initialisation de l'état du jeu
-  --taille de la fenetre du client
-  --(wx,wy) <- (sizeWindows window)
-  let gameState = M.initGameState 0 0 persoX persoY empty --px et py sont les coordonnées de la map placé sur l'écran
+
+  let gameState = M.initGameState persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
+  
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
   -- lancement de la gameLoop
@@ -229,12 +194,14 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   clear renderer
   --- display toutes les couches du background
  
-  carte <- displayBackground renderer tmap smap 0 (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) empty
-
+  let (Terrain ht lg contenu)= (M.terrain gameState)
+  
+  displayBackground renderer tmap smap 0 (ht*20) (lg*20) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
+  
   
   --M.collision2 gameState
   --print (gameState)
@@ -246,10 +213,10 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   endTime <- time
   let deltaTime = endTime - startTime
   --putStrLn $ "Delta time: " <> (show (deltaTime * 1000)) <> " (ms)"
-  putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
+  --putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
   --- update du game state----
   
-  let terrain= initTerrain 750 800 carte -- A ajouter à l'état du jeu - > la map change constament 
-  let gameState'' = M.gameStep (M.refreshMap gameState carte) kbd' deltaTime carte
+
+  let gameState'' = M.gameStep gameState kbd' deltaTime
   ---------------------------
   unless (K.keypressed KeycodeEscape kbd') (gameLoop frameRate renderer tmap smap kbd' gameState'')

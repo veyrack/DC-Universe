@@ -30,3 +30,6 @@
 -> Etat de jeu:
     -> Si perso perds de la vie: fin du jeu
     ->Si perso tombe dans un piège: perte de 80% de la vie
+
+---Optimisations----
+Displays Mur, coffres etc.. -> En une seul fonction en O(n)?
