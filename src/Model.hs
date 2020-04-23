@@ -77,12 +77,49 @@ collision :: GameState ->CInt -> CInt -> Bool
 collision gs@(GameState _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> True
                                                 Just Coffre -> True
+                                                Just (Porte NS Ferme) -> True
                                                 Just (Porte EO Ferme) -> True
-                                                Just (Porte EO Ferme) -> True
+                                                Just (Porte EO Ouvert) -> False
                                                 Just Entree -> False
                                                 Just Sortie -> False
                                                 Nothing -> False)
 
+-------Fonction en état de test------------
+
+objectOnPosition :: GameState -> CInt -> CInt-> String
+objectOnPosition gs@(GameState _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
+                                                Just Mur -> "Mur"
+                                                Just Coffre -> "Coffre"
+                                                Just (Porte NS Ferme) -> "Porte NS ferme"
+                                                Just (Porte EO Ferme) -> "Porte EO ferme"
+                                                Just (Porte EO Ouvert) -> "Porte EO Ouvert"
+                                                Just Entree -> "Entree"
+                                                Just Sortie -> "Sortie"
+                                                Nothing -> "Nothing")
+
+isitaDoor:: GameState -> CInt -> CInt -> (CInt, CInt)
+isitaDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y =
+  let (a,b) = isitaDoorLeft gs x y in if (a,b) /= ((-1),(-1)) then (a,b) else isitaDoorRight gs x y
+
+--Revoir ça, marche pas -> regarde la case où il est et pas celle de droite
+isitaDoorRight:: GameState -> CInt -> CInt -> (CInt, CInt)
+isitaDoorRight gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 25)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO ferme" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                    | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
+                                                                    | otherwise = ((-1),(-1)) --Pas de porte
+
+isitaDoorLeft:: GameState -> CInt -> CInt -> (CInt, CInt)
+isitaDoorLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO ferme" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                   | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
+                                                                   | otherwise = ((-1),(-1)) --Pas de porte
+
+
+openaDoor::GameState -> CInt -> CInt -> GameState
+openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f _ = (Just (Porte NS Ouvert))  in gs { terrain = (Terrain ht lg (alter f (Coord a b) c) ) }
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f _ = (Just (Porte EO Ouvert))  in gs { terrain = (Terrain ht lg (alter f (Coord a b) c) ) }
+                                                            |otherwise = gs
+
+testDoor::GameState -> GameState
+testDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) = let (a,b) =(isitaDoor gs px py) in if (a,b) /= ((-1),(-1)) then (openaDoor gs a b) else gs
 ----------------------Outil de debuguage--------------------------------------------------------
 {------Concernant les valeurs fixes dans les collisions: 
 -> ligne 56 : Le -4 permet d'éviter de se retrouver dans un mur. Les blocs sont de 20 pixel mais le perso se déplace de 4pixel, on peut donc observer un ecart de 4 pixel qui fait rentrer une petite partie dans le mur.
@@ -107,9 +144,11 @@ coordonneesPy ty py y= (((py+25+y)-(fromIntegral ty))`div`20)
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState tx ty _ px py (Terrain  ht lg c) ) = do
+  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0)
   let touttile=(collisionTileRight gs px py )
   let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0) ) c)
-  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0) ), value, touttile,"-----------")
+  print ( "-------", door)
+  --print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0) ), value, touttile,"-----------")
 
 ------------------------------------------------------------------------------------------------
 
@@ -123,6 +162,7 @@ gameStep gstate kbd deltaTime | (K.keypressed KeycodeD kbd) && (K.keypressed Key
                                     | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveLeft gstate ) )
                                     | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeD kbd) = gstate
                                     | (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeS kbd) = gstate
+                                    | (K.keypressed KeycodeE kbd) = (testDoor gstate)
                                     | (K.keypressed KeycodeD kbd) = (moveRight gstate )
                                     | (K.keypressed KeycodeQ kbd) = (moveLeft gstate )
                                     | (K.keypressed KeycodeZ kbd) = (moveUp gstate )

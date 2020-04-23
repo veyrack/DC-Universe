@@ -5,7 +5,7 @@ import Foreign.C.Types (CInt)
 import Data.Map 
 import qualified Data.Map as M
 
-data Statut = Ouverte |Ferme deriving (Eq,Show) --statut de la porte
+data Statut = Ouvert |Ferme deriving (Eq,Show) --statut de la porte
 
 data Direction =NS | EO deriving (Eq,Show) -- A changer plus tard
 
@@ -31,6 +31,7 @@ terrainGenerator fp = do
     file <- readFile fp --string
     let (contenu,ht,lg) = createTheMap file M.empty 0 0 0
     return (initTerrain ht lg contenu)
+
 
  
 --Mutliplier les valeurs x et y par 20 (taille d'une case)
