@@ -1,4 +1,4 @@
- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 x                             x 
 x                             x
 x                             x
@@ -7,12 +7,12 @@ x                             x
 x                             x
 x                             x
 x         xxxxxxxxxxxx        x
+x         |                   x
+x         x                   x
 x                             x
+x                     x       x
 x                             x
-x                             x
-x          x          x       x
-x                             x
-x                             x
+x                     x       x
 x                             x
 x                             x
 x          xxxxxxxxxx         x
