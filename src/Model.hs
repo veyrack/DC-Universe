@@ -90,33 +90,45 @@ objectOnPosition :: GameState -> CInt -> CInt-> String
 objectOnPosition gs@(GameState _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> "Mur"
                                                 Just Coffre -> "Coffre"
-                                                Just (Porte NS Ferme) -> "Porte NS ferme"
-                                                Just (Porte EO Ferme) -> "Porte EO ferme"
-                                                Just (Porte EO Ouvert) -> "Porte EO Ouvert"
+                                                Just (Porte NS Ferme) -> "Porte NS"
+                                                Just (Porte EO Ferme) -> "Porte EO"
+                                                Just (Porte EO Ouvert) -> "Porte EO"
+                                                Just (Porte NS Ouvert) -> "Porte NS"
                                                 Just Entree -> "Entree"
                                                 Just Sortie -> "Sortie"
                                                 Nothing -> "Nothing")
+--Pourquoi je fais tous ces calcules pour porte ferme et ouverte ?
+{-
+Pour une meilleuir précision je préfère tester tous les pixels pour savoir si la case adjacente au personnage est une porte. Dans le meilleur cas, 
+le premier pixel trouve la porte comme étant une case adjacente au personnage (O(1)). Dans le pire cas, la case n'est pas trouver, on doit alors 
+tester tous les pixels de côté du personnage. On a donc une complexité dans le pire cas en o(20)-> On test 20 pixels (Du la taille du perso,
+jusqu'aux pieds)
+-}
 
 isitaDoor:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y =
   let (a,b) = isitaDoorLeft gs x y in if (a,b) /= ((-1),(-1)) then (a,b) else isitaDoorRight gs x y
 
---Revoir ça, marche pas -> regarde la case où il est et pas celle de droite
+
 isitaDoorRight:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorRight gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 25)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO ferme" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+isitaDoorRight gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
                                                                     | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
                                                                     | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorLeft:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO ferme" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+isitaDoorLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
                                                                    | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
                                                                    | otherwise = ((-1),(-1)) --Pas de porte
 
+changeValueMap::GameState -> Coord -> Case -> GameState
+changeValueMap gs@(GameState tx ty sp px py (Terrain  ht lg c)) coord unecase = let newmap = (Map.insert coord unecase c ) in gs {terrain =(Terrain ht lg newmap)}
 
 openaDoor::GameState -> CInt -> CInt -> GameState
-openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f _ = (Just (Porte NS Ouvert))  in gs { terrain = (Terrain ht lg (alter f (Coord a b) c) ) }
-                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f _ = (Just (Porte EO Ouvert))  in gs { terrain = (Terrain ht lg (alter f (Coord a b) c) ) }
-                                                            |otherwise = gs
+openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f = (Porte NS Ouvert)  in (changeValueMap gs (Coord a b) f )
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in (changeValueMap gs (Coord a b) f )
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ouvert) ) =  let f = (Porte NS Ferme)  in (changeValueMap gs (Coord a b) f )
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ouvert) ) = let f = (Porte EO Ferme)  in (changeValueMap gs (Coord a b) f )
+                                                            | otherwise = gs
 
 testDoor::GameState -> GameState
 testDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) = let (a,b) =(isitaDoor gs px py) in if (a,b) /= ((-1),(-1)) then (openaDoor gs a b) else gs
@@ -144,11 +156,12 @@ coordonneesPy ty py y= (((py+25+y)-(fromIntegral ty))`div`20)
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState tx ty _ px py (Terrain  ht lg c) ) = do
-  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0)
+  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
   let touttile=(collisionTileRight gs px py )
-  let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0) ) c)
-  print ( "-------", door)
-  --print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) px 0) ), value, touttile,"-----------")
+  let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
+  print ()
+  --print ( "-------", door)
+  --print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ), value, touttile,"-----------")
 
 ------------------------------------------------------------------------------------------------
 
@@ -156,17 +169,17 @@ collision2 gs@(GameState tx ty _ px py (Terrain  ht lg c) ) = do
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                                     | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate
-                                    | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveRight gstate ) )
-                                    | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveRight gstate ) )
-                                    | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveLeft gstate ) )
-                                    | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveLeft gstate ) )
+                                    | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveRight gstate))
+                                    | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveRight gstate))
+                                    | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveLeft gstate))
+                                    | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveLeft gstate))
                                     | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeD kbd) = gstate
                                     | (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeS kbd) = gstate
                                     | (K.keypressed KeycodeE kbd) = (testDoor gstate)
-                                    | (K.keypressed KeycodeD kbd) = (moveRight gstate )
-                                    | (K.keypressed KeycodeQ kbd) = (moveLeft gstate )
-                                    | (K.keypressed KeycodeZ kbd) = (moveUp gstate )
-                                    | (K.keypressed KeycodeS kbd) = (moveDown gstate )
+                                    | (K.keypressed KeycodeD kbd) = (moveRight gstate)
+                                    | (K.keypressed KeycodeQ kbd) = (moveLeft gstate)
+                                    | (K.keypressed KeycodeZ kbd) = (moveUp gstate)
+                                    | (K.keypressed KeycodeS kbd) = (moveDown gstate)
                                     | otherwise = gstate
 
 

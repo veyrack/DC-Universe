@@ -121,6 +121,14 @@ loadPorteFerme rdr path tmap smap = do
   let smap' = SM.addSprite (SpriteId ("porteferme")) sprite smap
   return (tmap', smap')
 
+--charge les portes ouvertes
+loadPorteOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadPorteOuvert rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("porteouvert")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteouvert")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("porteouvert")) sprite smap
+  return (tmap', smap')
+
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -129,7 +137,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displaySol renderer tmap smap 0 0 ht lg transx trany --display le sol
   displayMurs renderer tmap smap carte transx trany--display murs
   displayCoffre renderer tmap smap carte transx trany--display coffres
-  displayPorteFerme renderer tmap smap carte transx trany
+  displayPorteFerme renderer tmap smap carte transx trany --display des portes fermee
+  displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
   return ()
   --display portes
 
@@ -172,6 +181,15 @@ displayPorteFerme renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteferme")) smap) ((x*20)+transx) ((y*20)+transy))
                               test as
 
+displayPorteOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayPorteOuvert renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Porte EO Ouvert) ) || (Just v)==(Just (Porte NS Ouvert) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteouvert")) smap) ((x*20)+transx) ((y*20)+transy))
+                              test as
+
 --------------------------------------
 
 main :: IO ()
@@ -191,6 +209,7 @@ main = do
   --chargement des coffres
   (tmap, smap) <- loadCoffre renderer "assets/coffre.png" tmap smap
   --chargement des portes
+  (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
   (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
@@ -221,8 +240,8 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
                                 persoY)
   
   
-  M.collision2 gameState
-  --print (gameState)
+  --M.collision2 gameState
+  print (gameState)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
