@@ -26,11 +26,11 @@ data GameState = GameState { transX :: CInt
                            ,speed ::CInt
                            , persoX :: CInt 
                            , persoY :: CInt
-                           ,terrain::Terrain
+                           , terrain :: Terrain
                            }
   deriving (Show)
 
-
+data DirectionPerso = North | West | South | East deriving (Eq,Show)
 
 initGameState :: CInt -> CInt-> CInt -> CInt-> Terrain -> GameState
 initGameState tx ty px py terrain = GameState tx ty 4 px py terrain
@@ -40,43 +40,44 @@ initGameState tx ty px py terrain = GameState tx ty 4 px py terrain
 
 ---------------------Deplacement du personnage (Ici, le déplacement du personnage est en réalité une translation de l'environnement, soit un scrolling)-------------
 moveLeft :: GameState -> GameState
-moveLeft gs@(GameState tx ty sp px py _)= if (collisionTileLeft gs px py ) then gs else gs { transX = tx + sp}
+moveLeft gs@(GameState tx ty sp _ px py _)= if (collisionTileLeft gs px py ) then gs {direction = West} else gs { transX = tx + sp,direction = West}
 
 moveRight :: GameState -> GameState
-moveRight gs@(GameState tx ty sp px py _)= if (collisionTileRight gs px py ) then gs else gs { transX = tx - sp}
+moveRight gs@(GameState tx ty sp _ px py _)= if (collisionTileRight gs px py ) then gs {direction = East} else gs { transX = tx - sp,direction = East}
                               
 moveUp :: GameState -> GameState
-moveUp gs@(GameState tx ty sp px py _)= if (collisionTileUp gs px py) then gs else gs { transY = ty + sp }
+moveUp gs@(GameState tx ty sp _ px py _)= if (collisionTileUp gs px py) then gs {direction = North} else gs { transY = ty + sp,direction = North }
 
 moveDown :: GameState -> GameState
-moveDown gs@(GameState tx ty sp px py _ )= if (collisionTileDown gs px py) then gs else gs { transY = ty - sp }
+moveDown gs@(GameState tx ty sp _ px py _ )= if (collisionTileDown gs px py) then gs {direction = South} else gs { transY = ty - sp,direction = South }
 
 -------------------Detection de collision pour chaqu'un des bord du personnages (Haut, bas, gauche, droite)------------------------
 collisionTileLeft :: GameState -> CInt -> CInt -> Bool
-collisionTileLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
+collisionTileLeft gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
                                                                           | py<y+8 = (collisionTileLeft (gs {persoY= py+1}) x y)
                                                                           | otherwise= False
 
 collisionTileRight :: GameState -> CInt -> CInt  -> Bool
-collisionTileRight gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
+collisionTileRight gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
                                                                            | py<y+8 = (collisionTileRight (gs {persoY= py+1}) x y)
                                                                            | otherwise= False
 
 collisionTileUp :: GameState -> CInt -> CInt  -> Bool
-collisionTileUp gs@(GameState tx ty sp px py (Terrain ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
-                                                                       | px<x+17 = (collisionTileUp (gs {persoX= px+1}) x y)
+collisionTileUp gs@(GameState tx ty sp _ px py (Terrain ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
+                                                                       | px<x+25 = (collisionTileUp (gs {persoX= px+1}) x y)
                                                                        | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
-collisionTileDown gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 24 )) == True = True
-                                                                          | px<x+17 = (collisionTileDown (gs {persoX= px+1}) x y)
+collisionTileDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 )) == True = True
+                                                                          | px<x+25 = (collisionTileDown (gs {persoX= px+1}) x y)
                                                                           | otherwise= False
 
 ------------------------------------------Detection de collision-------------------------------------
 collision :: GameState ->CInt -> CInt -> Bool
-collision gs@(GameState _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
+collision gs@(GameState _ _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> True
-                                                Just Coffre -> True
+                                                Just (Coffre Ouvert) -> True
+                                                Just (Coffre Ferme) -> True
                                                 Just (Porte NS Ferme) -> True
                                                 Just (Porte NS Ouvert) -> False
                                                 Just (Porte EO Ferme) -> True
@@ -88,9 +89,10 @@ collision gs@(GameState _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (C
 -------Fonction d'action des portes------------
 
 objectOnPosition :: GameState -> CInt -> CInt-> String
-objectOnPosition gs@(GameState _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
+objectOnPosition gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> "Mur"
-                                                Just Coffre -> "Coffre"
+                                                Just (Coffre Ouvert) -> "Coffre Ouvert"
+                                                Just (Coffre Ferme) -> "Coffre Ferme"
                                                 Just (Porte NS Ferme) -> "Porte NS"
                                                 Just (Porte EO Ferme) -> "Porte EO"
                                                 Just (Porte EO Ouvert) -> "Porte EO"
@@ -106,41 +108,41 @@ tester tous les pixels de côté du personnage. On a donc une complexité dans l
 jusqu'aux pieds)
 -}
 
-
 --Utiliser les directions pour améliorer le code des portes ?
 --Complexité trop élevée pour "isitadDoor"..A modifier plus tard
 isitaDoor:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (isitaDoorLeft gs x y ) /= ((-1),(-1)) = (isitaDoorLeft gs x y )
+isitaDoor gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (isitaDoorLeft gs x y ) /= ((-1),(-1)) = (isitaDoorLeft gs x y )
                                                                | (isitaDoorRight gs x y ) /= ((-1),(-1)) = (isitaDoorRight gs x y)
                                                                | (isitaDoorUp gs x y ) /= ((-1),(-1)) = (isitaDoorUp gs x y)
                                                                | otherwise = (isitaDoorDown gs x y)
 
 --Portes Ouest-Est
 isitaDoorRight:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorRight gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+isitaDoorRight gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
                                                                     | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
                                                                     | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorLeft:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+isitaDoorLeft gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
                                                                    | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
                                                                    | otherwise = ((-1),(-1)) --Pas de porte
 --Portes Nord-Sud
 isitaDoorUp :: GameState -> CInt -> CInt  -> (CInt, CInt)
-isitaDoorUp gs@(GameState tx ty sp px py (Terrain ht lg c)) x y    | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
+isitaDoorUp gs@(GameState tx ty sp _ px py (Terrain ht lg c)) x y    | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
                                                                    | px<x+25 = (isitaDoorUp (gs {persoX= px+1}) x y)
                                                                    | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorDown :: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorDown gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+isitaDoorDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
                                                                           | px<x+25 = (isitaDoorDown (gs {persoX= px+1}) x y)
                                                                           | otherwise = ((-1),(-1)) --Pas de porte
 
 changeValueMap::GameState -> Coord -> Case -> GameState
-changeValueMap gs@(GameState tx ty sp px py (Terrain  ht lg c)) coord unecase = let newmap = (Map.insert coord unecase c ) in gs {terrain =(Terrain ht lg newmap)}
+changeValueMap gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) coord unecase = let newmap = (Map.insert coord unecase c ) in gs {terrain =(Terrain ht lg newmap)}
 
 openaDoor::GameState -> CInt -> CInt -> GameState
-openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f = (Porte NS Ouvert)  in (changeValueMap gs (Coord a b) f )
+openaDoor gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f = (Porte NS Ouvert)  in (changeValueMap gs (Coord a b) f )
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in (changeValueMap gs (Coord a b) f )
                                                             | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ouvert) ) =  let f = (Porte NS Ferme)  in (changeValueMap gs (Coord a b) f )
                                                             | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in (changeValueMap gs (Coord a b) f )
                                                             | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ouvert) ) = let f = (Porte EO Ferme)  in (changeValueMap gs (Coord a b) f )
@@ -171,6 +173,48 @@ invariantEntree coords | length coords == 1 = True
 
 -}
 
+testChest :: GameState -> GameState
+testChest gs@(GameState tx ty sp d px py (Terrain  ht lg c)) = let (a,b) =(isitChest gs px py) in 
+                                                                  if (a,b) /= ((-1),(-1)) 
+                                                                    then (openChest gs a b) 
+                                                                    else gs
+
+
+isitChest :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitChest gs@(GameState tx ty sp d px py (Terrain  ht lg c)) x y  | (isitChestLeft gs x y ) /= ((-1),(-1)) = (isitChestLeft gs x y )
+                                                                  | (isitChestRight gs x y ) /= ((-1),(-1)) = (isitChestRight gs x y)
+                                                                  | (isitChestUp gs x y ) /= ((-1),(-1)) = (isitChestUp gs x y)
+                                                                  | otherwise = (isitChestDown gs x y)
+
+
+isitChestRight :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitChestRight gs@(GameState tx ty sp d px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Coffre Ferme" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+                                                                      | py<y+8 = (isitChestRight (gs {persoY= py+1}) x y)
+                                                                      | otherwise = ((-1),(-1)) --Pas de coffre
+
+isitChestLeft :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitChestLeft gs@(GameState tx ty sp d px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Coffre Ferme" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                    | py<y+8 = (isitChestLeft (gs {persoY= py+1}) x y)
+                                                                    | otherwise = ((-1),(-1)) --Pas de coffre
+
+              
+isitChestUp :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitChestUp gs@(GameState tx ty sp d px py (Terrain  ht lg c)) x y  | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 0)) (coordonneesPy (fromIntegral ty) py (-4)))=="Coffre Ferme" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py (-4)))
+                                                                    | px<x+25 = (isitChestUp (gs {persoX = px+1}) x y)
+                                                                    | otherwise = ((-1),(-1)) --Pas de coffre
+
+isitChestDown :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitChestDown gs@(GameState tx ty sp d px py (Terrain  ht lg c)) x y  | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24)) == "Coffre Ferme" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24))
+                                                                      | px<x+25 = (isitChestDown (gs {persoX = px+1}) x y)
+                                                                      | otherwise = ((-1),(-1)) --Pas de coffre
+
+openChest::GameState -> CInt -> CInt -> GameState
+openChest gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) a b  | ((Map.lookup (Coord a b) c))== (Just (Coffre Ferme) ) =  let f = (Coffre Ouvert)  in (changeValueMap gs (Coord a b) f )
+                                                                -- | ((Map.lookup (Coord a b) c))== (Just (Coffre Ouvert) ) =  let f = (Coffre Ferme)  in (changeValueMap gs (Coord a b) f )
+                                                                | otherwise = gs
+                                                                    
+
+
 
 --Coordonnees stricte personnage axe X
 coordonneesPx:: CInt -> CInt -> CInt -> CInt
@@ -182,8 +226,8 @@ coordonneesPy ty py y= (((py+25+y)-(fromIntegral ty))`div`20)
 
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
-collision2 gs@(GameState tx ty _ px py (Terrain  ht lg c) ) = do
-  --let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
+collision2 gs@(GameState tx ty _ _ px py (Terrain  ht lg c) ) = do
+  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
   let touttile=(collisionTileRight gs px py )
   let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   print ()
@@ -202,11 +246,9 @@ gameStep gstate kbd deltaTime | (K.keypressed KeycodeD kbd) && (K.keypressed Key
                                     | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveLeft gstate))
                                     | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeD kbd) = gstate
                                     | (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeS kbd) = gstate
-                                    | (K.keypressed KeycodeE kbd) = (testDoor gstate)
+                                    | (K.keypressed KeycodeE kbd) = (testChest (testDoor gstate)) 
                                     | (K.keypressed KeycodeD kbd) = (moveRight gstate)
                                     | (K.keypressed KeycodeQ kbd) = (moveLeft gstate)
                                     | (K.keypressed KeycodeZ kbd) = (moveUp gstate)
                                     | (K.keypressed KeycodeS kbd) = (moveDown gstate)
                                     | otherwise = gstate
-
-

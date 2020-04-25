@@ -106,11 +106,19 @@ loadMurs rdr path tmap smap = do
 
 
 --Charge les coffres
-loadCoffre:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
-loadCoffre rdr path tmap smap = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("coffre")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffre")) (S.mkArea 0 0 20 20) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("coffre")) sprite smap
+loadCoffreFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadCoffreFerme rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("coffreF")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreF")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("coffreF")) sprite smap
+  return (tmap', smap')
+  
+--Charge les coffres
+loadCoffreOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadCoffreOuvert rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("coffreO")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreO")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("coffreO")) sprite smap
   return (tmap', smap')
 
 --charge les portes ferme
@@ -136,7 +144,8 @@ displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt ->
 displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displaySol renderer tmap smap 0 0 ht lg transx trany --display le sol
   displayMurs renderer tmap smap carte transx trany--display murs
-  displayCoffre renderer tmap smap carte transx trany--display coffres
+  displayCoffreOuvert renderer tmap smap carte transx trany--display coffres
+  displayCoffreFerme renderer tmap smap carte transx trany--display coffres
   displayPorteFerme renderer tmap smap carte transx trany --display des portes fermee
   displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
   return ()
@@ -163,13 +172,22 @@ displayMurs renderer tmap smap carte transx transy= do
                               test as
 
 --Affiches les coffres
-displayCoffre::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
-displayCoffre renderer tmap smap carte transx transy= do
-  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Coffre)) carte
+displayCoffreFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayCoffreFerme renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Coffre Ferme))) carte
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffre")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreF")) smap) ((x*20)+transx) ((y*20)+transy))
+                              test as
+                              
+displayCoffreOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayCoffreOuvert renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Coffre Ouvert))) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreO")) smap) ((x*20)+transx) ((y*20)+transy))
                               test as
 
 displayPorteFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
@@ -207,7 +225,8 @@ main = do
   --chargement des murs
   (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap--Ici, il faudra une fonction pour optenir le nombre de mur dans la map
   --chargement des coffres
-  (tmap, smap) <- loadCoffre renderer "assets/coffre.png" tmap smap
+  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap
+  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap
   --chargement des portes
   (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
   (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
@@ -224,7 +243,7 @@ main = do
   gameLoop 60 renderer tmap' smap' kbd gameState
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState tx ty sp d px py terrain) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
@@ -241,7 +260,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   
   
   --M.collision2 gameState
-  print (gameState)
+  print (d)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
