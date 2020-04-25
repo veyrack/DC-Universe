@@ -54,12 +54,12 @@ moveDown gs@(GameState tx ty sp _ px py _ )= if (collisionTileDown gs px py) the
 
 -------------------Detection de collision pour chaqu'un des bord du personnages (Haut, bas, gauche, droite)------------------------
 collisionTileLeft :: GameState -> CInt -> CInt -> Bool
-collisionTileLeft gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
+collisionTileLeft gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y  | (collision gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
                                                                           | py<y+8 = (collisionTileLeft (gs {persoY= py+1}) x y)
                                                                           | otherwise= False
 
 collisionTileRight :: GameState -> CInt -> CInt  -> Bool
-collisionTileRight gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
+collisionTileRight gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y | (collision gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
                                                                            | py<y+8 = (collisionTileRight (gs {persoY= py+1}) x y)
                                                                            | otherwise= False
 -- Le 17 et 8 modifier pour collisiontileup collisiontiledown
@@ -69,7 +69,7 @@ collisionTileUp gs@(GameState tx ty sp _ px py (Terrain ht lg c)) x y  | (collis
                                                                        | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
-collisionTileDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
+collisionTileDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y | (collision gs (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
                                                                           | px<x+17 = (collisionTileDown (gs {persoX= px+1}) x y)
                                                                           | otherwise= False
 
@@ -113,20 +113,20 @@ jusqu'aux pieds)
 --Complexité trop élevée pour "isitadDoor"..A modifier plus tard
 isitaDoor:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoor gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (isitaDoorLeft gs x y ) /= ((-1),(-1)) = (isitaDoorLeft gs x y )
-                                                               | (isitaDoorRight gs x y ) /= ((-1),(-1)) = (isitaDoorRight gs x y)
-                                                               | (isitaDoorUp gs x y ) /= ((-1),(-1)) = (isitaDoorUp gs x y)
-                                                               | otherwise = (isitaDoorDown gs x y)
+                                                                 | (isitaDoorRight gs x y ) /= ((-1),(-1)) = (isitaDoorRight gs x y)
+                                                                 | (isitaDoorUp gs x y ) /= ((-1),(-1)) = (isitaDoorUp gs x y)
+                                                                 | otherwise = (isitaDoorDown gs x y)
 
 --Portes Ouest-Est
 isitaDoorRight:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoorRight gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
-                                                                    | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
-                                                                    | otherwise = ((-1),(-1)) --Pas de porte
+                                                                      | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
+                                                                      | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorLeft:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoorLeft gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
-                                                                   | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
-                                                                   | otherwise = ((-1),(-1)) --Pas de porte
+                                                                     | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
+                                                                     | otherwise = ((-1),(-1)) --Pas de porte
 --Portes Nord-Sud
 isitaDoorUp :: GameState -> CInt -> CInt  -> (CInt, CInt)
 isitaDoorUp gs@(GameState tx ty sp _ px py (Terrain ht lg c)) x y  | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
@@ -134,9 +134,9 @@ isitaDoorUp gs@(GameState tx ty sp _ px py (Terrain ht lg c)) x y  | (objectOnPo
                                                                    | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorDown :: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y   | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                          | px<x+25 = (isitaDoorDown (gs {persoX= px+1}) x y)
-                                                                          | otherwise = ((-1),(-1)) --Pas de porte
+isitaDoorDown gs@(GameState tx ty sp _ px py (Terrain  ht lg c) ) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+                                                                      | px<x+25 = (isitaDoorDown (gs {persoX= px+1}) x y)
+                                                                      | otherwise = ((-1),(-1)) --Pas de porte
 
 changeValueMap::GameState -> Coord -> Case -> GameState
 changeValueMap gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) coord unecase = let newmap = (Map.insert coord unecase c ) in gs {terrain =(Terrain ht lg newmap)}
