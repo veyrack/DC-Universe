@@ -105,11 +105,16 @@ tester tous les pixels de côté du personnage. On a donc une complexité dans l
 jusqu'aux pieds)
 -}
 
+
+--Utiliser les directions pour améliorer le code des portes ?
+--Complexité trop élevée pour "isitadDoor"..A modifier plus tard
 isitaDoor:: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y =
-  let (a,b) = isitaDoorLeft gs x y in if (a,b) /= ((-1),(-1)) then (a,b) else isitaDoorRight gs x y
+isitaDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (isitaDoorLeft gs x y ) /= ((-1),(-1)) = (isitaDoorLeft gs x y )
+                                                               | (isitaDoorRight gs x y ) /= ((-1),(-1)) = (isitaDoorRight gs x y)
+                                                               | (isitaDoorUp gs x y ) /= ((-1),(-1)) = (isitaDoorUp gs x y)
+                                                               | otherwise = (isitaDoorDown gs x y)
 
-
+--Portes Ouest-Est
 isitaDoorRight:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoorRight gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
                                                                     | py<y+8 = (isitaDoorRight (gs {persoY= py+1}) x y)
@@ -119,16 +124,27 @@ isitaDoorLeft:: GameState -> CInt -> CInt -> (CInt, CInt)
 isitaDoorLeft gs@(GameState tx ty sp px py (Terrain  ht lg c)) x y | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
                                                                    | py<y+8 = (isitaDoorLeft (gs {persoY= py+1}) x y)
                                                                    | otherwise = ((-1),(-1)) --Pas de porte
+--Portes Nord-Sud
+isitaDoorUp :: GameState -> CInt -> CInt  -> (CInt, CInt)
+isitaDoorUp gs@(GameState tx ty sp px py (Terrain ht lg c)) x y    | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
+                                                                   | px<x+25 = (isitaDoorUp (gs {persoX= px+1}) x y)
+                                                                   | otherwise = ((-1),(-1)) --Pas de porte
+
+isitaDoorDown :: GameState -> CInt -> CInt -> (CInt, CInt)
+isitaDoorDown gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (objectOnPosition gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+                                                                          | px<x+25 = (isitaDoorDown (gs {persoX= px+1}) x y)
+                                                                          | otherwise = ((-1),(-1)) --Pas de porte
 
 changeValueMap::GameState -> Coord -> Case -> GameState
 changeValueMap gs@(GameState tx ty sp px py (Terrain  ht lg c)) coord unecase = let newmap = (Map.insert coord unecase c ) in gs {terrain =(Terrain ht lg newmap)}
 
 openaDoor::GameState -> CInt -> CInt -> GameState
 openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ferme) ) =  let f = (Porte NS Ouvert)  in (changeValueMap gs (Coord a b) f )
-                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in (changeValueMap gs (Coord a b) f )
                                                             | ((Map.lookup (Coord a b) c))== (Just (Porte NS Ouvert) ) =  let f = (Porte NS Ferme)  in (changeValueMap gs (Coord a b) f )
+                                                            | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in (changeValueMap gs (Coord a b) f )
                                                             | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ouvert) ) = let f = (Porte EO Ferme)  in (changeValueMap gs (Coord a b) f )
                                                             | otherwise = gs
+                                                            
 
 testDoor::GameState -> GameState
 testDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) = let (a,b) =(isitaDoor gs px py) in if (a,b) /= ((-1),(-1)) then (openaDoor gs a b) else gs
@@ -156,7 +172,7 @@ coordonneesPy ty py y= (((py+25+y)-(fromIntegral ty))`div`20)
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState tx ty _ px py (Terrain  ht lg c) ) = do
-  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
+  --let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
   let touttile=(collisionTileRight gs px py )
   let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   print ()

@@ -1,7 +1,7 @@
 -----Bug-----
 
 -> Porte ouverte/ferme : Parfois ne s'ouvre ou se ferme qu'après plusieurs appel à la touche E
-
+    -> Problème du keyboard  (loop récupère très vite la même touche) d'après le prof (Il a eu le même problème)
 ----A faire---
 
 -> Generateur de labyrinthes /!En cours!\
@@ -11,7 +11,7 @@
 -> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
     -> Ferme porte
 ->Sortie du labyrinthe: si sortie, jeu terminé
-
+->Entree du labyrinthe: positionner camera et joueur sur l'entree
 ->Menu du jeu
     ->play
     ->options
@@ -42,5 +42,7 @@
 
 ---Optimisations----
  -> Displays Mur, coffres etc.. : En une seul fonction en O(n)?
+    -> De même pour les load
  -> La case du sol en 0 0 a faire disparaître si aucun mur
     -> On fais commencer le sol à (0,0), faut changer ça
+ ->Utiliser les directions pour améliorer le code des portes ?

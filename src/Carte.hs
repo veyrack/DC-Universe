@@ -32,10 +32,7 @@ terrainGenerator fp = do
     let (contenu,ht,lg) = createTheMap file M.empty 0 0 0
     return (initTerrain ht lg contenu)
 
-
- 
 --Mutliplier les valeurs x et y par 20 (taille d'une case)
-
 --Pour l'instant crée que les murs
 createTheMap :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> (M.Map Coord Case, CInt, CInt)
 createTheMap [] mymap x y lg= (mymap, y, lg)
@@ -45,3 +42,4 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== '-' = createTheMap as (M.insert (Coord x y) (Porte NS Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== '|' = createTheMap as (M.insert (Coord x y) (Porte EO Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
+

@@ -230,7 +230,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   let kbd' = K.handleEvents events kbd
   clear renderer
   --- display toutes les couches du background
- 
+  
   let (Terrain ht lg contenu)= (M.terrain gameState)
   
   displayBackground renderer tmap smap 0 (ht*20) (lg*20) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
@@ -241,7 +241,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   
   
   --M.collision2 gameState
-  print (gameState)
+  --print (gameState)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
