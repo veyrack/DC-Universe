@@ -8,10 +8,11 @@
     ->Generer ennemis
 -> Ouverture de coffre: action avec la touche "E" + display coffre ouvert /!\
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
--> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
-    -> Ferme porte
+V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
+    V-> Ferme porte
 ->Sortie du labyrinthe: si sortie, jeu terminé
 ->Entree du labyrinthe: positionner camera et joueur sur l'entree
+    -> Renvoyer une exception si plusieurs entree
 ->Menu du jeu
     ->play
     ->options

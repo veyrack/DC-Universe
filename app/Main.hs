@@ -65,10 +65,10 @@ blocLargeur = largeurDj `div` 20 --20pixel pour un bloc
 
 --Position du personnage
 persoX::CInt
-persoX = largeurDj `div` 2
+persoX = 350
 
 persoY::CInt
-persoY = hauteurDj `div` 2
+persoY = 350
 
 --Renvoie la fenêtre de l'écran
 getWindow:: MonadIO m => m Window
@@ -215,8 +215,8 @@ main = do
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
   -- initialisation de l'état du jeu
-
-  let gameState = M.initGameState persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let (Coord coorda coordb)= M.getEntree contenu
+  let gameState = M.initGameState (persoX - (coorda*20)) (persoY - (coordb*20)) persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard

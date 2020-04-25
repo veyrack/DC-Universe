@@ -21,9 +21,9 @@ import qualified Keyboard as K
 
 
 
-data GameState = GameState { transX :: Int
-                           , transY :: Int
-                           ,speed ::Int
+data GameState = GameState { transX :: CInt
+                           , transY :: CInt
+                           ,speed ::CInt
                            , persoX :: CInt 
                            , persoY :: CInt
                            ,terrain::Terrain
@@ -32,8 +32,8 @@ data GameState = GameState { transX :: Int
 
 
 
-initGameState :: CInt -> CInt-> Terrain -> GameState
-initGameState px py terrain = GameState 0 0 4 px py terrain
+initGameState :: CInt -> CInt-> CInt -> CInt-> Terrain -> GameState
+initGameState tx ty px py terrain = GameState tx ty 4 px py terrain
 
 --refreshMap:: GameState -> Map Coord Case -> GameState
 --refreshMap gs@(GameState tx ty sp px py _) c = gs {transX = tx, transY=ty, speed=sp ,carte=c}
@@ -85,7 +85,7 @@ collision gs@(GameState _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (C
                                                 Just Sortie -> False
                                                 Nothing -> False)
 
--------Fonction en état de test------------
+-------Fonction d'action des portes------------
 
 objectOnPosition :: GameState -> CInt -> CInt-> String
 objectOnPosition gs@(GameState _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
@@ -149,6 +149,16 @@ openaDoor gs@(GameState _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Coor
 
 testDoor::GameState -> GameState
 testDoor gs@(GameState tx ty sp px py (Terrain  ht lg c)) = let (a,b) =(isitaDoor gs px py) in if (a,b) /= ((-1),(-1)) then (openaDoor gs a b) else gs
+
+---------------------Fonction d'entree-------------------
+getEntree::(Map Coord Case) -> Coord
+getEntree carte = 
+  let monentree = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Entree)) carte in
+    if (invariantEntree monentree) then monentree!!0 else Coord (-1) (-1)
+
+invariantEntree::[Coord] -> Bool
+invariantEntree coords | length coords == 1 = True 
+                       | otherwise = False
 ----------------------Outil de debuguage--------------------------------------------------------
 {------Concernant les valeurs fixes dans les collisions: 
 -> ligne 56 : Le -4 permet d'éviter de se retrouver dans un mur. Les blocs sont de 20 pixel mais le perso se déplace de 4pixel, on peut donc observer un ecart de 4 pixel qui fait rentrer une petite partie dans le mur.

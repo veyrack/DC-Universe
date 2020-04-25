@@ -41,5 +41,6 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a=='c' = createTheMap as (M.insert (Coord x y) Coffre mymap) (x+1) y (if lg< x then x else lg ) --Si on voit un coffre
                                  | a== '-' = createTheMap as (M.insert (Coord x y) (Porte NS Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== '|' = createTheMap as (M.insert (Coord x y) (Porte EO Ferme) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'E' = createTheMap as (M.insert (Coord x y) (Entree) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
