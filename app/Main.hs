@@ -241,7 +241,7 @@ gameLoop frameRate renderer tmap smap kbd gameState = do
   
   
   --M.collision2 gameState
-  --print (gameState)
+  print (gameState)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime

@@ -63,13 +63,13 @@ collisionTileRight gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (co
                                                                            | otherwise= False
 
 collisionTileUp :: GameState -> CInt -> CInt  -> Bool
-collisionTileUp gs@(GameState tx ty sp px py (Terrain ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
-                                                                       | px<x+25 = (collisionTileUp (gs {persoX= px+1}) x y)
+collisionTileUp gs@(GameState tx ty sp px py (Terrain ht lg c)) x y    | (collision gs (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
+                                                                       | px<x+17 = (collisionTileUp (gs {persoX= px+1}) x y)
                                                                        | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
-collisionTileDown gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 )) == True = True
-                                                                          | px<x+25 = (collisionTileDown (gs {persoX= px+1}) x y)
+collisionTileDown gs@(GameState tx ty sp px py (Terrain  ht lg c) ) x y   | (collision gs (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 24 )) == True = True
+                                                                          | px<x+17 = (collisionTileDown (gs {persoX= px+1}) x y)
                                                                           | otherwise= False
 
 ------------------------------------------Detection de collision-------------------------------------
@@ -78,6 +78,7 @@ collision gs@(GameState _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup (C
                                                 Just Mur -> True
                                                 Just Coffre -> True
                                                 Just (Porte NS Ferme) -> True
+                                                Just (Porte NS Ouvert) -> False
                                                 Just (Porte EO Ferme) -> True
                                                 Just (Porte EO Ouvert) -> False
                                                 Just Entree -> False
