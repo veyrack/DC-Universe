@@ -6,24 +6,37 @@ x                             x
 x                             x
 x                             x
 x                             x
-x         xxxxxxxxxxxx        x
+x         xxxxxxxxx-xx        x
 x         |                   x
 x         x                   x
 x                             x
-x                     x       x
-x                             x
-x                     x       x
 x                             x
 x                             x
+x                             x
+<<<<<<< HEAD
 x          xxxxxxxxxx         x
 x          x        x         x
 x          x        x         x
 x          x        x         x
 x          x        x     c   x
+=======
 x                             x
+>>>>>>> 966a014e47d0a05e24a405423928aedb067b8179
 x                             x
+x          xxxxxxxxxx         x
+x                             x
+x              x              x
+x              x              x
+x              |              x
+x              x              x
+x              x              x
+x                             x
+<<<<<<< HEAD
 x      c                      x
 x                    c        x                              
+=======
+x                             x                              
+>>>>>>> 966a014e47d0a05e24a405423928aedb067b8179
 x                             x                              
 x        c                    x               
 x                             x

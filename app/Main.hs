@@ -249,7 +249,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState tx ty sp d px p
   let kbd' = K.handleEvents events kbd
   clear renderer
   --- display toutes les couches du background
- 
+  
   let (Terrain ht lg contenu)= (M.terrain gameState)
   
   displayBackground renderer tmap smap 0 (ht*20) (lg*20) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
