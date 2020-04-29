@@ -1,5 +1,5 @@
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-x                            Ex 
+x                             x 
 x                             x
 x                             x
 x                             x
@@ -20,15 +20,15 @@ x                             x
 x          xxxxxxxxxx         x
 x          x        x         x
 x          x        x         x
+x    c     x        x         x
 x          x        x         x
-x          x        x         x
+xxxxxxxxxxxx                  x
 x                             x
 x                             x
 x                             x
-x        c      c             x
 x                             x                              
 x                             x                              
-x                     c       x                              
+x                             x                              
 x                             x               
 x                             x
 x                             x
@@ -36,5 +36,5 @@ x                x            x
 x                x            x                              
 xxxxxxxx         x     c      x              
 x      x         x            x
-x      |         x            x           
+x E    |         x            x           
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

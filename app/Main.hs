@@ -241,7 +241,7 @@ main = do
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc)) persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -249,24 +249,24 @@ main = do
   gameLoop 60 renderer tmap' smap' kbd gameState
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState tx ty sp d px py terrain) = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) sp (M.Perso px py d) (Terrain  ht lg contenu)) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
   clear renderer
   --- display toutes les couches du background
   
-  let (Terrain ht lg contenu)= (M.terrain gameState)
+  --let (Terrain ht lg contenu)= terrain
   
-  displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
+  displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty)) contenu
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
-  
+  --Move ennemis
   
   --M.collision2 gameState
-  print (contenu)
+  --print (contenu)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
