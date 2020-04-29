@@ -13,14 +13,12 @@ import Foreign.C.Types (CInt (..) )
 import Keyboard (Keyboard)
 import qualified Keyboard as K
 
+
+
 --Transx : Correspond au déplacement sur l'axe des x du personnage (En réalité, c'est l'environnement qui se "deplace")
 --Transy: Pareil que Transx mais sur l'axe des y
-
 --PersoX: L'axe x où se situe le personnage
 --PersoY: L'axe des y où se situe le personnage
-
-
-
 data GameState = GameState { transX :: CInt
                            , transY :: CInt
                            ,speed ::CInt
@@ -87,8 +85,6 @@ collision gs@(GameState _ _ _ _ _ _ (Terrain  ht lg c)) x y = (case (Map.lookup 
                                                 Just Sortie -> False
                                                 Nothing -> False)
 
--------Fonction d'action des portes------------
-
 objectOnPosition :: GameState -> CInt -> CInt-> String
 objectOnPosition gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) x y = (case (Map.lookup (Coord x y) c) of
                                                 Just Mur -> "Mur"
@@ -108,6 +104,9 @@ le premier pixel trouve la porte comme étant une case adjacente au personnage (
 tester tous les pixels de côté du personnage. On a donc une complexité dans le pire cas en o(20)-> On test 20 pixels (Du la taille du perso,
 jusqu'aux pieds)
 -}
+
+
+-- |Fonction d'action des portes
 
 --Utiliser les directions pour améliorer le code des portes ?
 --Complexité trop élevée pour "isitadDoor"..A modifier plus tard
@@ -153,26 +152,10 @@ openaDoor gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) a b | ((Map.lookup (Co
 testDoor::GameState -> GameState
 testDoor gs@(GameState tx ty sp _ px py (Terrain  ht lg c)) = let (a,b) =(isitaDoor gs px py) in if (a,b) /= ((-1),(-1)) then (openaDoor gs a b) else gs
 
----------------------Fonction d'entree-------------------
-getEntree::(Map Coord Case) -> Coord
-getEntree carte = 
-  let monentree = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Entree)) carte in
-    if (invariantEntree monentree) then monentree!!0 else Coord (-1) (-1)
 
-invariantEntree::[Coord] -> Bool
-invariantEntree coords | length coords == 1 = True 
-                       | otherwise = False
-----------------------Outil de debuguage--------------------------------------------------------
-{------Concernant les valeurs fixes dans les collisions: 
--> ligne 56 : Le -4 permet d'éviter de se retrouver dans un mur. Les blocs sont de 20 pixel mais le perso se déplace de 4pixel, on peut donc observer un ecart de 4 pixel qui fait rentrer une petite partie dans le mur.
-  Consequences : On ne peux plus longer un mur du haut vers le bas
-->ligne 61: Le 29 concerne un problème de sprite. Les sprites son positionnés avec des coordonées placé en haut à gauche (0,0). La collision sera effective sur la tranche droite du bloc. On comble se décalage tel que 29 = 25 (la largeur du personnage) + 4 (Le déplacement de 4 pixel)
-  Consequences:  On ne peux plus longer un mur du haut vers le bas
-->ligne 66: pareil que la ligne 56.
-  Consequences : On ne peux plus longer un mur de l'est vers l'ouest
-->ligne 71 : 24 = 20 (bloc du bac) + 4 (déplcement du personnage en pixel)
 
--}
+
+-- |Fonction d'action des coffres
 
 testChest :: GameState -> GameState
 testChest gs@(GameState tx ty sp d px py (Terrain  ht lg c)) = let (a,b) =(isitChest gs px py) in 
@@ -215,8 +198,18 @@ openChest gs@(GameState _ _ _ _ px py (Terrain  ht lg c)) a b  | ((Map.lookup (C
                                                                 | otherwise = gs
                                                                     
 
+-- |Outils de debuguage
 
+{------Concernant les valeurs fixes dans les collisions: 
+-> ligne 56 : Le -4 permet d'éviter de se retrouver dans un mur. Les blocs sont de 20 pixel mais le perso se déplace de 4pixel, on peut donc observer un ecart de 4 pixel qui fait rentrer une petite partie dans le mur.
+  Consequences : On ne peux plus longer un mur du haut vers le bas
+->ligne 61: Le 29 concerne un problème de sprite. Les sprites son positionnés avec des coordonées placé en haut à gauche (0,0). La collision sera effective sur la tranche droite du bloc. On comble se décalage tel que 29 = 25 (la largeur du personnage) + 4 (Le déplacement de 4 pixel)
+  Consequences:  On ne peux plus longer un mur du haut vers le bas
+->ligne 66: pareil que la ligne 56.
+  Consequences : On ne peux plus longer un mur de l'est vers l'ouest
+->ligne 71 : 24 = 20 (bloc du bac) + 4 (déplcement du personnage en pixel)
 
+-}
 --Coordonnees stricte personnage axe X
 coordonneesPx:: CInt -> CInt -> CInt -> CInt
 coordonneesPx tx px x = (((px+x)-(fromIntegral tx))`div`20)
@@ -237,7 +230,10 @@ collision2 gs@(GameState tx ty _ _ px py (Terrain  ht lg c) ) = do
 
 ------------------------------------------------------------------------------------------------
 
-----------Mise a jour de l'était du jeu lors d'un déplacement------------------------
+
+
+-- |Mise a jour de l'était du jeu lors d'un déplacement
+
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                                     | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate

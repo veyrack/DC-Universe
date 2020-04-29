@@ -10,16 +10,19 @@
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
 V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
     V-> Ferme porte
+    
 ->Sortie du labyrinthe: si sortie, jeu terminé
-->Entree du labyrinthe: positionner camera et joueur sur l'entree
+
+V->Entree du labyrinthe: positionner camera et joueur sur l'entree
     -> Renvoyer une exception si plusieurs entree
+
 ->Menu du jeu
     ->play
     ->options
     ->credits
 
 -> Personnage
-    -> Ajout d'une direction (N,S,E,O) /!\
+    V-> Ajout d'une direction (N,S,E,O) /!\
     ->display de direction: animation de changement de direction.
     ->dispaly de ramassage de stuff: get key,sword.. (à la zelda)
     ->display vie du personnage (Afficher une barre de vie)

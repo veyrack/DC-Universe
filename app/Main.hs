@@ -40,6 +40,7 @@ import Data.Map
 import qualified Data.Map.Strict as Map
 
 import Carte
+import qualified Carte as C
 
 --Screen size
 hauteurWin :: CInt
@@ -49,11 +50,13 @@ largeurWin:: CInt
 largeurWin = 800
 
 --size of the dungeon
+{-
 hauteurDj :: CInt
 hauteurDj = 700
 
 largeurDj:: CInt
 largeurDj = 700
+
 
 --Nombre de blocs en hauteur
 blocHauteur::CInt
@@ -62,13 +65,16 @@ blocHauteur = hauteurDj `div` 20 --20pixel pour un bloc
 --Nombre de blocs en largeur
 blocLargeur::CInt
 blocLargeur = largeurDj `div` 20 --20pixel pour un bloc
-
+-}
 --Position du personnage
 persoX::CInt
 persoX = 350
 
 persoY::CInt
 persoY = 350
+
+tailleBloc:: CInt
+tailleBloc = 20
 
 --Renvoie la fenêtre de l'écran
 getWindow:: MonadIO m => m Window
@@ -80,7 +86,7 @@ getWindow = createWindow "Dungeon Crawler Universe" $ defaultWindow { windowInit
   --let (V2 x y) = stateValue
   --return (x, y)
 
-
+--Charge le personnage contrôlé par l'utilisateur 
 loadPerso :: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap)
 loadPerso rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId "perso") tmap
@@ -92,7 +98,7 @@ loadPerso rdr path tmap smap = do
 loadSol:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadSol rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("sol")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("sol")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("sol")) sprite smap
   return (tmap', smap')
 
@@ -100,7 +106,7 @@ loadSol rdr path tmap smap = do
 loadMurs:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadMurs rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("mur")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("mur")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("mur")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("mur")) sprite smap
   return (tmap', smap')
 
@@ -109,7 +115,7 @@ loadMurs rdr path tmap smap = do
 loadCoffreFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadCoffreFerme rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("coffreF")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreF")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreF")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("coffreF")) sprite smap
   return (tmap', smap')
   
@@ -117,7 +123,7 @@ loadCoffreFerme rdr path tmap smap = do
 loadCoffreOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadCoffreOuvert rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("coffreO")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreO")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreO")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("coffreO")) sprite smap
   return (tmap', smap')
 
@@ -125,7 +131,7 @@ loadCoffreOuvert rdr path tmap smap = do
 loadPorteFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadPorteFerme rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("porteferme")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteferme")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteferme")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("porteferme")) sprite smap
   return (tmap', smap')
 
@@ -133,7 +139,7 @@ loadPorteFerme rdr path tmap smap = do
 loadPorteOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadPorteOuvert rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("porteouvert")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteouvert")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteouvert")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("porteouvert")) sprite smap
   return (tmap', smap')
 
@@ -155,8 +161,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
 displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
 displaySol renderer tmap smap posx posy ht lg transx transy= do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sol")) smap) (posx+transx) (posy+transy))
-  if posx < (lg-20) then (displaySol renderer tmap smap (posx+20) posy  ht lg transx transy ) 
-    else if posy < (ht-20) then (displaySol renderer tmap smap 0 (posy+20)  ht lg transx transy)
+  if posx < (lg-tailleBloc) then (displaySol renderer tmap smap (posx+tailleBloc) posy  ht lg transx transy ) 
+    else if posy < (ht-tailleBloc) then (displaySol renderer tmap smap 0 (posy+tailleBloc)  ht lg transx transy)
       else return ()
 
 --Affiche les murs
@@ -168,7 +174,7 @@ displayMurs renderer tmap smap carte transx transy= do
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("mur")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("mur")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
 --Affiches les coffres
@@ -178,7 +184,7 @@ displayCoffreFerme renderer tmap smap carte transx transy= do
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreF")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreF")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
                               
 displayCoffreOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
@@ -187,7 +193,7 @@ displayCoffreOuvert renderer tmap smap carte transx transy= do
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreO")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreO")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
 displayPorteFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
@@ -196,7 +202,7 @@ displayPorteFerme renderer tmap smap carte transx transy= do
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteferme")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteferme")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
 displayPorteOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
@@ -205,7 +211,7 @@ displayPorteOuvert renderer tmap smap carte transx transy= do
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteouvert")) smap) ((x*20)+transx) ((y*20)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteouvert")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
 --------------------------------------
@@ -234,8 +240,8 @@ main = do
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
   -- initialisation de l'état du jeu
-  let (Coord coorda coordb)= M.getEntree contenu
-  let gameState = M.initGameState (persoX - (coorda*20)) (persoY - (coordb*20)) persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let (Coord coorda coordb)= C.getEntree contenu
+  let gameState = M.initGameState (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc)) persoX persoY terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -252,7 +258,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState tx ty sp d px p
   
   let (Terrain ht lg contenu)= (M.terrain gameState)
   
-  displayBackground renderer tmap smap 0 (ht*20) (lg*20) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
+  displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (M.transX gameState)) (fromIntegral (M.transY gameState)) contenu
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
@@ -260,7 +266,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState tx ty sp d px p
   
   
   --M.collision2 gameState
-  print (d)
+  print (contenu)
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
