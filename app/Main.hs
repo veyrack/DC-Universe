@@ -221,23 +221,53 @@ main = do
   initializeAll
   window <- getWindow
   renderer <- createRenderer window (-1) defaultRenderer
-  -- lancement de la gameLoop
-  pscene <- title renderer
-  gameLoop 60 pscene
 
-gameLoop :: (RealFrac a, Show a) => a -> (TextureMap,SpriteMap,GameState,Renderer,Keyboard) -> IO ()
-gameLoop frameRate (tmap,smap,gameState,renderer,kbd) = do
+  --Generation d'un terrain à partir d'un fichier
+  terrain <-terrainGenerator "src/test.txt"
+  let (Terrain ht lg contenu)= terrain
+
+  -- chargement du sol
+  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
+  --chargement des murs
+  (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap--Ici, il faudra une fonction pour optenir le nombre de mur dans la map
+  --chargement des coffres
+  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap
+  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap
+  --chargement des portes
+  (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
+  (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
+  -- chargement du personnage
+  (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
+
+  -- initialisation de l'état du jeu
+  let (Coord coorda coordb)= C.getEntree contenu
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  
+  -- initialisation de l'état du clavier
+  let kbd = K.createKeyboard
+
+  -- |Menu 
+  title renderer kbd
+  -- lancement de la gameLoop
+  gameLoop 60 renderer tmap' smap' kbd gameState
+
+
+gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) sp (M.Perso px py d) (Terrain  ht lg contenu)) = do
   startTime <- time
   events <- pollEvents
-  
-  --(tmap,smap,gameState@(M.GameState (M.Translation tx ty) sp (M.Perso px py d) (Terrain  ht lg contenu)),renderer,kbd) <- play
-  
   let kbd' = K.handleEvents events kbd
+  print("JEU")
   clear renderer
   --- display toutes les couches du background
   
   --let (Terrain ht lg contenu)= terrain
-
+  
+  displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty)) contenu
+  --- display perso 
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
+                                 persoX
+                                persoY)
   --Move ennemis
   
   --M.collision2 gameState
@@ -256,52 +286,15 @@ gameLoop frameRate (tmap,smap,gameState,renderer,kbd) = do
 
   let gameState'' = M.gameStep gameState kbd' deltaTime
   ---------------------------
-  scene<- if (K.keypressed KeycodeReturn kbd') 
-                then play renderer
-                else return (tmap,smap,gameState'',renderer,kbd')
-  -- let (tm, sm, gs ,r ,k )=scene 
-  -- print (gs)
-  unless (K.keypressed KeycodeEscape kbd') (gameLoop frameRate scene)
+  unless (K.keypressed KeycodeEscape kbd') (gameLoop frameRate renderer tmap smap kbd' gameState'')
 
 
-play :: Renderer -> IO (TextureMap,SpriteMap,GameState,Renderer,Keyboard)
-play renderer = do
-  print("PLAY")
-  --Generation d'un terrain à partir d'un fichier
-  terrain <-terrainGenerator "src/test.txt"
-  let (Terrain ht lg contenu)= terrain
-
-  -- chargement du sol
-  (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
-  --chargement des murs
-  (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap--Ici, il faudra une fonction pour optenir le nombre de mur dans la map
-  --chargement des coffres
-  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap
-  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap
-  --chargement des portes
-  (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
-  (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
-  -- chargement du personnage
-  (tmap, smap) <- loadPerso renderer "assets/perso2.png" tmap smap
-
-  -- initialisation de l'état du jeu
-  let (Coord coorda coordb)= C.getEntree contenu
-  let gameState@(M.GameState (M.Translation tx ty) sp (M.Perso px py d) (Terrain  ht lg contenu)) = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North) terrain --px et py sont les coordonnées de la map placé sur l'écran
-  displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty)) contenu
-
-  --- display perso 
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
-                                 persoX
-                                persoY)
-  
-  -- initialisation de l'état du clavier
-  let kbd = K.createKeyboard
-  return (tmap,smap,gameState,renderer,kbd)
-
-
-title :: Renderer -> IO (TextureMap,SpriteMap,GameState,Renderer,Keyboard)
-title renderer = do
-  print("TITLE")
-  let kbd = K.createKeyboard
-  let gameState = M.initGameState (M.Translation 0 0) (M.Perso 0 0 M.North) (C.initTerrain 0 0 empty)
-  return (empty,empty,gameState,renderer,kbd)
+title :: Renderer -> Keyboard -> IO ()
+title renderer kbd= do
+  events <- pollEvents
+  let kbd' = K.handleEvents events kbd
+  print ("TITLE")
+  if (K.keypressed KeycodeReturn kbd') then
+    return ()
+      else
+        title renderer kbd
