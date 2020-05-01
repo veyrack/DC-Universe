@@ -143,6 +143,13 @@ loadPorteOuvert rdr path tmap smap = do
   let smap' = SM.addSprite (SpriteId ("porteouvert")) sprite smap
   return (tmap', smap')
 
+--Charge les IA
+loadMob:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadMob rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("mob")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("mob")) (S.mkArea 0 0 20 20) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("mob")) sprite smap
+  return (tmap', smap')
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -154,6 +161,7 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displayCoffreFerme renderer tmap smap carte transx trany--display coffres
   displayPorteFerme renderer tmap smap carte transx trany --display des portes fermee
   displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
+  displayMob renderer tmap smap carte transx trany --display ennemis
   return ()
   --display portes
 
@@ -214,6 +222,15 @@ displayPorteOuvert renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteouvert")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayMob::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayMob renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Zombie )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("mob")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
 --------------------------------------
 
 main :: IO ()
@@ -236,6 +253,8 @@ main = do
   --chargement des portes
   (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
   (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
+  --chargement ennemis
+  (tmap, smap) <- loadMob renderer "assets/mob.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
 
@@ -253,11 +272,11 @@ main = do
 
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) sp (M.Perso px py d) (Terrain  ht lg contenu)) = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d) (Terrain  ht lg contenu)) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
-  print("JEU")
+  --print("JEU")
   clear renderer
   --- display toutes les couches du background
   
@@ -282,9 +301,11 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --putStrLn $ "Delta time: " <> (show (deltaTime * 1000)) <> " (ms)"
   --putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
   --- update du game state----
-  
 
-  let gameState'' = M.gameStep gameState kbd' deltaTime
+  --Deplacement mob = mise a jour de leurs positions
+  newgs <- if ((tour `mod` 10)==0) then (M.action gameState) else return gameState
+
+  let gameState'' = M.gameStep (newgs {M.tour = tour+1}) kbd' deltaTime
   ---------------------------
   unless (K.keypressed KeycodeEscape kbd') (gameLoop frameRate renderer tmap smap kbd' gameState'')
 
