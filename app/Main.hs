@@ -170,7 +170,9 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displayCoffreFerme renderer tmap smap carte transx trany--display coffres
   displayPorteFerme renderer tmap smap carte transx trany --display des portes fermee
   displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
-displayBackground renderer tmap smap cpt ht lg transx trany carte= do
+  displayMob renderer tmap smap carte transx trany --display ennemis
+  return ()
+  --display portes
 
 --Affiche le sol
 displaySol :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
