@@ -15,6 +15,7 @@ data Case = Vide
     | Coffre Statut
     | Entree
     | Sortie
+    | Zombie
     deriving (Eq, Show)
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
@@ -44,6 +45,7 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== '-' = createTheMap as (M.insert (Coord x y) (Porte NS Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== '|' = createTheMap as (M.insert (Coord x y) (Porte EO Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'E' = createTheMap as (M.insert (Coord x y) (Entree) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'z' = createTheMap as (M.insert (Coord x y) (Zombie) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
 -- |Invariant pour la creation du terrain

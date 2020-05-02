@@ -2,6 +2,8 @@
 
 -> Porte ouverte/ferme : Parfois ne s'ouvre ou se ferme qu'après plusieurs appel à la touche E
     -> Problème du keyboard  (loop récupère très vite la même touche) d'après le prof (Il a eu le même problème)
+
+-> L'IA ne voit pas le perso -> Le perso détecte la colision avec l'iA mais l'IA ne detecte pas le perso car il n'est pas sur la map
 ----A faire---
 
 -> Generateur de labyrinthes /!En cours!\
