@@ -42,6 +42,7 @@ import qualified Data.Map.Strict as Map
 import Carte
 import qualified Carte as C
 
+
 --Screen size
 hauteurWin :: CInt
 hauteurWin = 700
@@ -142,6 +143,14 @@ loadPorteOuvert rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteouvert")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("porteouvert")) sprite smap
   return (tmap', smap')
+  
+--charge le text
+loadText:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadText rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("text")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("text")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*10)) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("text")) sprite smap
+  return (tmap', smap')
 
 -----------------------A la creation je place mes blocs ----------------------------------
 
@@ -237,7 +246,8 @@ main = do
   (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
   (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
   -- chargement du personnage
-  (tmap', smap') <- loadPerso renderer "assets/perso2.png" tmap smap
+  (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
+  (tmap', smap') <- loadText renderer "assets/title.png" tmap' smap'
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
@@ -247,7 +257,7 @@ main = do
   let kbd = K.createKeyboard
 
   -- |Menu 
-  title renderer kbd
+  title renderer kbd tmap' smap' gameState
   -- lancement de la gameLoop
   gameLoop 60 renderer tmap' smap' kbd gameState
 
@@ -289,12 +299,23 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   unless (K.keypressed KeycodeEscape kbd') (gameLoop frameRate renderer tmap smap kbd' gameState'')
 
 
-title :: Renderer -> Keyboard -> IO ()
-title renderer kbd= do
+title :: Renderer -> Keyboard -> TextureMap -> SpriteMap -> GameState -> IO ()
+title renderer kbd tmap smap gs = do
+  startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
+  clear renderer
   print ("TITLE")
-  if (K.keypressed KeycodeReturn kbd') then
-    return ()
-      else
-        title renderer kbd
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
+                                persoX
+                                persoY)
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "text") smap)
+                                100
+                                100)
+  present renderer
+  endTime <- time
+  unless (K.keypressed KeycodeReturn kbd') (title renderer kbd tmap smap gs)
+  -- if (K.keypressed KeycodeReturn kbd') then
+  --   return ()
+  --     else
+  --       title renderer kbd
