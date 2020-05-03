@@ -25,16 +25,16 @@ x          x        x         x
 xxxxxxxxxxxx                  x
 x                             x
 x                             x
-x                             x
+x   S                         x
+x               z             x                              
 x                             x                              
-x                 z           x                              
 x                             x                              
 x                             x               
-x                             x
+x     E                       x
 x                             x
 x                x            x                              
 x                x            x                              
 xxxxxxxx         x     c      x              
 x      x         x            x
-x E    |         x            x           
+x      |         x            x           
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

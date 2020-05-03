@@ -3,23 +3,33 @@
 -> Porte ouverte/ferme : Parfois ne s'ouvre ou se ferme qu'après plusieurs appel à la touche E
     -> Problème du keyboard  (loop récupère très vite la même touche) d'après le prof (Il a eu le même problème)
 
--> L'IA ne voit pas le perso -> Le perso détecte la colision avec l'iA mais l'IA ne detecte pas le perso car il n'est pas sur la map
+V-> Si le perso va vraiment vite sur la sortie, la detection de la sortie n'a pas lieu
+    soluce: C'était une question d'ordre dans le GameState
+-> L'IA 
+    -> Le perso détecte la colision avec l'iA mais l'IA ne detecte pas le perso car il n'est pas dans la map
+    -> Passe pas les endroit etroits, il lui faut une hitbox, une position en pixel etc..
+        -> Si positon en pixel, pas la map: Trouver une solution pour que le perso touche le mob
+    -> Parfois il peux effacer les coffres (A cause du delete dans updateKeyMap ) : Il faut rajotuer la condtion qu'il peut aller que quand lookup d'une map est nothing
+
 ----A faire---
 
--> Generateur de labyrinthes /!En cours!\
+V> Generateur de labyrinthes /!En cours!\
     ->Generer ennemis
--> Ouverture de coffre: action avec la touche "E" + display coffre ouvert /!\
+
+-> Ouverture de coffre: 
+    V->action avec la touche "E" + display coffre ouvert /!\
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
+
 V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
     V-> Ferme porte
     
-->Sortie du labyrinthe: si sortie, jeu terminé
+V->Sortie du labyrinthe: si sortie, jeu terminé
 
 V->Entree du labyrinthe: positionner camera et joueur sur l'entree
     -> Renvoyer une exception si plusieurs entree
 
 ->Menu du jeu
-    ->play
+    V->play
     ->options
     ->credits
 
@@ -30,18 +40,19 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
     ->display vie du personnage (Afficher une barre de vie)
 
 -> IA mob:
-    -> ???
+    V-> Ennemi passif
+    ->Ennemi Aggresif (prérequis : Vie du perso et des mob)
 
 ->Evenemenet particuler: 
     -> esclalier: Passage au labyrinthe suivant.
 
 -> Etat de jeu:
-    -> Si perso perds de la vie: fin du jeu
-    ->Si perso tombe dans un piège: perte de 80% de la vie
+    -> Si perso perds de la vie: fin du jeu (prérequis : Vie du perso)
+    ->Si perso tombe dans un piège: perte de 80% de la vie (prérequis : Vie du perso
 
 -----Invariants-------
 -> Generateur de labyrinthes
-    -> Objet présent dans la map (Pas de coffre en dehors du donjon)
+    V-> Objet présent dans la map (Pas de coffre en dehors du donjon par exemple)
     -> Unique entree et sortie
     -> Porte entre deux murs
     -> Sortie accessible depuis l'entree
