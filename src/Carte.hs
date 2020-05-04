@@ -55,6 +55,9 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== 'S' = createTheMap as (M.insert (Coord x y) (Sortie) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
+createTheMap_pre :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> Bool
+createTheMap_pre = undefined
+
 -- |Invariant pour la creation du terrain
 invariantCreateMap:: CInt -> CInt -> M.Map Coord Case -> Bool
 invariantCreateMap ht lg contenu = if (invariantObjets ht lg contenu) && (invariantMurs ht lg contenu) then True else False
@@ -91,10 +94,16 @@ getEntree carte =
   let monentree = M.keys $ filterWithKey (\k v -> (Just v)==(Just Entree)) carte in
     if (invariantEntree monentree) then monentree!!0 else Coord (-1) (-1)
 
+getEntree_pre :: (Map Coord Case) -> Bool
+getEntree_pre carte = undefined
+
 getSortie :: (Map Coord Case) -> Coord
 getSortie carte = 
   let masortie = M.keys $ filterWithKey (\k v -> (Just v)==(Just Sortie)) carte in
     if (invariantSortie masortie) then masortie!!0 else Coord (-1) (-1)
+
+getSortie_pre :: (Map Coord Case) -> Bool
+getSortie_pre carte = undefined
 
 invariantEntree::[Coord] -> Bool
 invariantEntree coords | length coords == 1 = True 
@@ -104,12 +113,43 @@ invariantSortie :: [Coord] -> Bool
 invariantSortie coords | length coords == 1 = True 
                        | otherwise = False
 
--- | Récuperer les coordonnées d'un objet en particlier dans la map (ex: tous les coffres ou tous les murs)
-getCoordonneesObjectMap:: Eq a => (Map Coord a) -> Maybe a -> [Coord]
+
+-- |Fonctions de recherche
+
+objectOnPosition :: (Map Coord Case) -> CInt -> CInt-> String
+objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
+                                                Just Mur -> "Mur"
+                                                Just (Coffre Ouvert) -> "Coffre Ouvert"
+                                                Just (Coffre Ferme) -> "Coffre Ferme"
+                                                Just (Porte NS Ferme) -> "Porte NS"
+                                                Just (Porte EO Ferme) -> "Porte EO"
+                                                Just (Porte EO Ouvert) -> "Porte EO"
+                                                Just (Porte NS Ouvert) -> "Porte NS"
+                                                Just Entree -> "Entree"
+                                                Just Sortie -> "Sortie"
+                                                Just Zombie -> "Zombie"
+                                                Nothing -> "Nothing")
+
+collision :: (Map Coord Case) ->CInt -> CInt -> Bool
+collision carte x y = (case (M.lookup (Coord x y) carte) of
+                                                Just Mur -> True
+                                                Just (Coffre Ouvert) -> True
+                                                Just (Coffre Ferme) -> True
+                                                Just (Porte NS Ferme) -> True
+                                                Just (Porte NS Ouvert) -> False
+                                                Just (Porte EO Ferme) -> True
+                                                Just (Porte EO Ouvert) -> False
+                                                Just Entree -> False
+                                                Just Sortie -> False
+                                                Just Zombie -> True
+                                                Nothing -> False)
+
+-- | Récuperer toutes les coordonnées d'un objet en particlier dans la map (ex: tous les coffres ou tous les murs)
+getCoordonneesObjectMap:: (Map Coord Case) -> Maybe Case -> [Coord]
 getCoordonneesObjectMap carte object= M.keys $ filterWithKey (\k v -> (Just v)==object) carte
 
 getCoordonneesObjectMap_pre ::  Eq a => (Map Coord a) -> Maybe a -> Bool
-getCoordonneesObjectMap_pre carte object=undefined
+getCoordonneesObjectMap_pre carte object = undefined
 
 -- |Fonctions Utilitaires
 --Met a jour la valeur d'un objet dans la carte du GameState

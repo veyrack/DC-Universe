@@ -77,53 +77,28 @@ moveDown gs@(GameState (Translation tx ty) _ sp (Perso px py _) _ _)= if (collis
 
 -------------------Detection de collision pour chaqu'un des bord du personnages (Haut, bas, gauche, droite)------------------------
 collisionTileLeft :: GameState -> CInt -> CInt -> Bool
-collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y  | (collision gs (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
+collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y  | (Carte.collision c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
                                                                                                 | py<y+8 = (collisionTileLeft (gs {perso = (Perso px (py+1) d)}) x y)
                                                                                                 | otherwise= False
 
 collisionTileRight :: GameState -> CInt -> CInt  -> Bool
-collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y | (collision gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
+collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
                                                                                                 | py<y+8 = (collisionTileRight (gs {perso = (Perso px (py+1) d)}) x y)
                                                                                                 | otherwise= False
 -- Le 17 et 8 modifier pour collisiontileup collisiontiledown
 collisionTileUp :: GameState -> CInt -> CInt  -> Bool
-collisionTileUp gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y  | (collision gs (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
+collisionTileUp gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
                                                                                               | px<x+17 = (collisionTileUp (gs {perso = (Perso (px+1) py d)}) x y)
                                                                                               | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
-collisionTileDown gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y | (collision gs (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
+collisionTileDown gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
                                                                                                | px<x+17 = (collisionTileDown (gs {perso = (Perso (px+1) py d)}) x y)
                                                                                                | otherwise= False
 
 ------------------------------------------Detection de collision-------------------------------------
-collision :: GameState ->CInt -> CInt -> Bool
-collision gs@(GameState _ _ _ _ (Terrain  ht lg c) _) x y = (case (Map.lookup (Coord x y) c) of
-                                                Just Mur -> True
-                                                Just (Coffre Ouvert) -> True
-                                                Just (Coffre Ferme) -> True
-                                                Just (Porte NS Ferme) -> True
-                                                Just (Porte NS Ouvert) -> False
-                                                Just (Porte EO Ferme) -> True
-                                                Just (Porte EO Ouvert) -> False
-                                                Just Entree -> False
-                                                Just Sortie -> False
-                                                Just Zombie -> True
-                                                Nothing -> False)
 
-objectOnPosition :: (Map Coord Case) -> CInt -> CInt-> String
-objectOnPosition c x y = (case (Map.lookup (Coord x y) c) of
-                                                Just Mur -> "Mur"
-                                                Just (Coffre Ouvert) -> "Coffre Ouvert"
-                                                Just (Coffre Ferme) -> "Coffre Ferme"
-                                                Just (Porte NS Ferme) -> "Porte NS"
-                                                Just (Porte EO Ferme) -> "Porte EO"
-                                                Just (Porte EO Ouvert) -> "Porte EO"
-                                                Just (Porte NS Ouvert) -> "Porte NS"
-                                                Just Entree -> "Entree"
-                                                Just Sortie -> "Sortie"
-                                                Just Zombie -> "Zombie"
-                                                Nothing -> "Nothing")
+
 --Pourquoi je fais tous ces calcules pour porte ferme et ouverte ?
 {-
 Pour une meilleuir précision je préfère tester tous les pixels pour savoir si la case adjacente au personnage est une porte. Dans le meilleur cas, 
@@ -242,11 +217,17 @@ action gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c)
   let entites = getCoordonneesObjectMap c (Just Zombie)
   (moveAll gs entites)
 
+action_pre :: GameState -> Bool
+action_pre = undefined
+
 moveAll::GameState -> [Coord] -> IO (GameState)
 moveAll gs [] = return gs
 moveAll gs (x:xs) = do
   newgs <- move gs x
   moveAll newgs xs
+
+moveAll_pre :: GameState -> [Coord] -> Bool
+moveAll_pre gs coords = undefined
 
 move:: GameState -> Coord -> IO (GameState)
 move gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _) (Coord x y)= do
@@ -257,8 +238,8 @@ move gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg c) _
     3 -> if ((Map.lookup (Coord (x+1) y) c)) == Nothing then return gs { terrain = (Terrain ht lg (C.updateKeyMap (Coord x y) (Coord (x+1) y) c))} else return gs
     4 -> if ((Map.lookup (Coord (x-1) y) c)) == Nothing then return gs { terrain = (Terrain ht lg (C.updateKeyMap (Coord x y) (Coord (x-1) y) c))} else return gs
 
-
-
+move_pre :: GameState -> Coord -> Bool
+move_pre gs (Coord x y) = undefined
 
 -- |Outils de debuguage
 
