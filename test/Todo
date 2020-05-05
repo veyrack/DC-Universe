@@ -48,7 +48,7 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
 
 -> Etat de jeu:
     -> Si perso perds de la vie: fin du jeu (prérequis : Vie du perso)
-    ->Si perso tombe dans un piège: perte de 80% de la vie (prérequis : Vie du perso
+    ->Si perso tombe dans un piège: perte de 80% de la vie (prérequis : Vie du perso)
 
 -----Invariants-------
 -> Generateur de labyrinthes

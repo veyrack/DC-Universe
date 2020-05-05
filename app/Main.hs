@@ -42,6 +42,9 @@ import qualified Data.Map.Strict as Map
 import Carte
 import qualified Carte as C
 
+import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
+import qualified SDL.Video.Renderer as R
+
 
 --Screen size
 hauteurWin :: CInt
@@ -265,6 +268,11 @@ displaySortie renderer tmap smap carte transx transy= do
     test ((Coord x y):as) = do 
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sortie")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
+
+displayRectangle :: Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayRectangle renderer tmap smap carte transx transy= undefined
+  --let rectangle = createtexture RGB24 TextureAccessStreaming
+ -- R.copy renderer
 --------------------------------------
 
 main :: IO ()
@@ -300,7 +308,7 @@ main = do
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -312,7 +320,7 @@ main = do
 
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d) (Terrain  ht lg contenu) etatjeu) = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d vie) (Terrain  ht lg contenu) etatjeu) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
