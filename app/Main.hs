@@ -42,6 +42,10 @@ import qualified Data.Map.Strict as Map
 import Carte
 import qualified Carte as C
 
+import Control.Exception
+import Exception
+import qualified Exception as E
+
 import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
 import qualified SDL.Video.Renderer as R
 
@@ -285,6 +289,10 @@ main = do
   terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
 
+  --Test si la map est valide
+  if (not $ carteValide contenu)
+    then throw InvalidMapException else putStrLn "Carte : Pass"
+    
   -- chargement du sol
   (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
   --chargement des murs

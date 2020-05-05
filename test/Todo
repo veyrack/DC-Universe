@@ -53,7 +53,7 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
 -----Invariants-------
 -> Generateur de labyrinthes
     V-> Objet présent dans la map (Pas de coffre en dehors du donjon par exemple)
-    -> Unique entree et sortie
+    V-> Unique entree et sortie
     -> Porte entre deux murs
     -> Sortie accessible depuis l'entree
 

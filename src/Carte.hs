@@ -27,8 +27,7 @@ initTerrain ht lg contenu = Terrain ht lg contenu
 --Initialise le terrain : Dans le loadTerrain du main, j'ajoute les infos du terrain ici
 
 initTerrain_pre :: CInt -> CInt -> Map Coord Case -> Bool
-initTerrain_pre ht lg contenu | ht >0 && lg >0 && (length contenu) >0 = True
-                              | otherwise = False
+initTerrain_pre ht lg contenu = ht >0 && lg >0 && (length contenu) >0
 
 terrainGenerator :: FilePath -> IO (Terrain)
 terrainGenerator fp = do
@@ -38,9 +37,6 @@ terrainGenerator fp = do
         return (initTerrain ht lg contenu)
         else 
             return (initTerrain ht lg M.empty) -- Je retourne une map vide si l'invariant est faux
-
-terrainGenerator_pre :: FilePath -> Bool
-terrainGenerator_pre fp = undefined
 
 --Mutliplier les valeurs x et y par 20 (taille d'une case)
 createTheMap :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> (M.Map Coord Case, CInt, CInt)
@@ -88,30 +84,37 @@ invmursvertical carte x y ht | y==ht = True
                              | M.lookup (Coord x y) carte == (Just Mur) = invmursvertical carte x (y+1) ht
                              | otherwise = False
 
+-- |Verifie que les portes sont rentre 2 murs
+checkPorte :: (Map Coord Case) -> Bool
+checkPorte carte  = 
+     let mesportes = M.keys $ filterWithKey (\k v -> ((Just v)==(Just (Porte NS Ferme)) 
+                                                    || (Just v)==(Just (Porte EO Ferme))
+                                                    || (Just v) == (Just (Porte NS Ouvert))
+                                                    || (Just v) == (Just (Porte EO Ouvert)))) carte in auxcheckPortes mesportes carte
+
+auxcheckPortes :: [Coord] -> (Map Coord Case) -> Bool
+auxcheckPortes ((Coord x y):xs) carte | ((objectOnPosition carte x y) == "Porte NS") && ((objectOnPosition carte (x-1) y) == "Mur") && ((objectOnPosition carte (x+1) y) == "Mur")  && xs == [] = True
+                                      | ((objectOnPosition carte x y) == "Porte EO") && ((objectOnPosition carte x (y-1)) == "Mur") && ((objectOnPosition carte x (y+1)) == "Mur")  && xs == [] = True
+                                      | ((objectOnPosition carte x y) == "Porte EO") && ((objectOnPosition carte x (y-1)) == "Mur") && ((objectOnPosition carte x (y+1)) == "Mur") = auxcheckPortes xs carte
+                                      | ((objectOnPosition carte x y) == "Porte NS") && ((objectOnPosition carte (x-1) y) == "Mur") && ((objectOnPosition carte (x+1) y) == "Mur") = auxcheckPortes xs carte
+                                      | otherwise = False
+
 -- |Fonction d'entree: Récupère l'entrée dans la carte pour pouvoir placer le joueur
 getEntree::(Map Coord Case) -> Coord
 getEntree carte = 
   let monentree = M.keys $ filterWithKey (\k v -> (Just v)==(Just Entree)) carte in
     if (invariantEntree monentree) then monentree!!0 else Coord (-1) (-1)
 
-getEntree_pre :: (Map Coord Case) -> Bool
-getEntree_pre carte = undefined
-
 getSortie :: (Map Coord Case) -> Coord
 getSortie carte = 
   let masortie = M.keys $ filterWithKey (\k v -> (Just v)==(Just Sortie)) carte in
     if (invariantSortie masortie) then masortie!!0 else Coord (-1) (-1)
 
-getSortie_pre :: (Map Coord Case) -> Bool
-getSortie_pre carte = undefined
-
 invariantEntree::[Coord] -> Bool
-invariantEntree coords | length coords == 1 = True 
-                       | otherwise = False
+invariantEntree coords = length coords == 1
 
 invariantSortie :: [Coord] -> Bool
-invariantSortie coords | length coords == 1 = True 
-                       | otherwise = False
+invariantSortie coords = length coords == 1
 
 
 -- |Fonctions de recherche
@@ -144,8 +147,13 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just Zombie -> True
                                                 Nothing -> False)
 
+--Verifie que la carte n'est pas vide et que x et y sont positif (annoding peut-être mais c'est pour garder une certaine cohérence -> les coordonnées sont toutes positives)
 collision_pre :: (Map Coord Case) ->CInt -> CInt -> Bool
-collision_pre = undefined
+collision_pre carte x y = (length carte) > 0 && x >=0 && y>=0
+
+-- Pas sûr : A verfier 
+collision_post :: (Map Coord Case) ->CInt -> CInt -> Bool
+collision_post carte x y = (M.lookup (Coord x y) carte) /= Nothing
 
 -- | Récuperer toutes les coordonnées d'un objet en particlier dans la map (ex: tous les coffres ou tous les murs)
 getCoordonneesObjectMap:: (Map Coord Case) -> Maybe Case -> [Coord]
@@ -175,13 +183,11 @@ updateValueMap::(Map Coord Case) -> Coord -> Case -> (Map Coord Case)
 updateValueMap carte coord unecase = let newmap = (M.insert coord unecase carte ) in newmap
 
 updateValueMap_post:: (Map Coord Case) -> Coord -> Case ->Bool
-updateValueMap_post carte coord unecase |(M.lookup coord carte) == (Just unecase) = True
-                                        | otherwise = False
+updateValueMap_post carte coord unecase = (M.lookup coord carte) == (Just unecase)
 
 --Il faut que les coordonnées soit inf à ht et lg aussi
 updateValueMap_pre:: (Map Coord Case) -> Coord -> Case ->Bool
-updateValueMap_pre carte (Coord x y) unecase | x>=0 && y>=0 = True
-                                             | otherwise = False
+updateValueMap_pre carte (Coord x y) unecase = x>=0 && y>=0
 
 --Met à jour la clé d'un objet dans la carte du GameState
 updateKeyMap :: Coord -> Coord -> Map Coord Case -> Map Coord Case
@@ -192,13 +198,11 @@ updateKeyMap k0 k1 myMap = case M.lookup k0 myMap of
 -- On peux update la clé que dans le cas où la case est un zombie (Pour l'instant)
 -- il faut que les coordonnes inf à la ht et lg
 updateKeyMap_pre :: Coord -> Coord -> Map Coord Case -> Bool
-updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap | x >= 0 && y >=0 && x1>=0 && y1 >=0 = True
-                                                 |otherwise = False
+updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap = x >= 0 && y >=0 && x1>=0 && y1 >=0
 
 --Si la coordonnées de l'objet à changer
 updateKeyMap_post :: Coord -> Coord -> Map Coord Case -> Bool
-updateKeyMap_post before after myMap | ((M.lookup before myMap) == Nothing) && ((M.lookup after myMap) /= Nothing) = True
-                                     | otherwise = False
+updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && ((M.lookup after myMap) /= Nothing)
 
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
@@ -209,5 +213,8 @@ getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
 
 --Si resultat non vide c'est true sinon false
 getCaseFromString_post :: String -> Bool
-getCaseFromString_post entity | entity == "Coffre Ferme" || entity == "Sortie" = True
-                                 | otherwise = False
+getCaseFromString_post entity = entity == "Coffre Ferme" || entity == "Sortie"
+
+--Verifie si la carte est valide
+carteValide :: (Map Coord Case) -> Bool
+carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte
