@@ -144,21 +144,44 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just Zombie -> True
                                                 Nothing -> False)
 
+collision_pre :: (Map Coord Case) ->CInt -> CInt -> Bool
+collision_pre = undefined
+
 -- | Récuperer toutes les coordonnées d'un objet en particlier dans la map (ex: tous les coffres ou tous les murs)
 getCoordonneesObjectMap:: (Map Coord Case) -> Maybe Case -> [Coord]
 getCoordonneesObjectMap carte object= M.keys $ filterWithKey (\k v -> (Just v)==object) carte
 
-getCoordonneesObjectMap_pre ::  Eq a => (Map Coord a) -> Maybe a -> Bool
-getCoordonneesObjectMap_pre carte object = undefined
+getCoordonneesObjectMap_post :: (Map Coord Case) -> Maybe Case -> Bool
+getCoordonneesObjectMap_post carte object= undefined
+
+-- Verifie si carte non vide et l'objet est un objet existant
+getCoordonneesObjectMap_pre :: (Map Coord Case) -> Maybe Case -> Bool
+getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
+                                                                    Just Mur -> True
+                                                                    Just (Coffre Ouvert) -> True
+                                                                    Just (Coffre Ferme) -> True
+                                                                    Just (Porte NS Ferme) -> True
+                                                                    Just (Porte NS Ouvert) -> False
+                                                                    Just (Porte EO Ferme) -> True
+                                                                    Just (Porte EO Ouvert) -> False
+                                                                    Just Entree -> False
+                                                                    Just Sortie -> False
+                                                                    Just Zombie -> True
+                                                                    Nothing -> False) 
 
 -- |Fonctions Utilitaires
 --Met a jour la valeur d'un objet dans la carte du GameState
 updateValueMap::(Map Coord Case) -> Coord -> Case -> (Map Coord Case)
 updateValueMap carte coord unecase = let newmap = (M.insert coord unecase carte ) in newmap
 
+updateValueMap_post:: (Map Coord Case) -> Coord -> Case ->Bool
+updateValueMap_post carte coord unecase |(M.lookup coord carte) == (Just unecase) = True
+                                        | otherwise = False
 
+--Il faut que les coordonnées soit inf à ht et lg aussi
 updateValueMap_pre:: (Map Coord Case) -> Coord -> Case ->Bool
-updateValueMap_pre carte coord unecase = undefined
+updateValueMap_pre carte (Coord x y) unecase | x>=0 && y>=0 = True
+                                             | otherwise = False
 
 --Met à jour la clé d'un objet dans la carte du GameState
 updateKeyMap :: Coord -> Coord -> Map Coord Case -> Map Coord Case
@@ -167,18 +190,24 @@ updateKeyMap k0 k1 myMap = case M.lookup k0 myMap of
    Just e  -> M.insert k1 e (M.delete k0 myMap)
 
 -- On peux update la clé que dans le cas où la case est un zombie (Pour l'instant)
+-- il faut que les coordonnes inf à la ht et lg
 updateKeyMap_pre :: Coord -> Coord -> Map Coord Case -> Bool
-updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap | x >= 0 && y >=0 && x1>=0 && y1 >=0 && (M.lookup (Coord x y) myMap) == (Just Zombie)= True
+updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap | x >= 0 && y >=0 && x1>=0 && y1 >=0 = True
                                                  |otherwise = False
+
+--Si la coordonnées de l'objet à changer
+updateKeyMap_post :: Coord -> Coord -> Map Coord Case -> Bool
+updateKeyMap_post before after myMap | ((M.lookup before myMap) == Nothing) && ((M.lookup after myMap) /= Nothing) = True
+                                     | otherwise = False
 
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
 getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Sortie" = Sortie
-                         | entity == "Zombie" = Zombie
-                         | entity == "Entree" = Entree
                          | otherwise = Vide 
 
-getCaseFromString_pre :: String -> Bool
-getCaseFromString_pre entity = undefined
+--Si resultat non vide c'est true sinon false
+getCaseFromString_post :: String -> Bool
+getCaseFromString_post entity | entity == "Coffre Ferme" || entity == "Sortie" = True
+                                 | otherwise = False
