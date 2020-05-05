@@ -13,7 +13,7 @@ V-> Si le perso va vraiment vite sur la sortie, la detection de la sortie n'a pa
 
 ----A faire---
 
-V> Generateur de labyrinthes /!En cours!\
+V-> Generateur de labyrinthes /!En cours!\
     ->Generer ennemis
 
 -> Ouverture de coffre: 
@@ -60,6 +60,4 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
 ---Optimisations----
  -> Displays Mur, coffres etc.. : En une seul fonction en O(n)?
     -> De même pour les load
- -> La case du sol en 0 0 a faire disparaître si aucun mur
-    -> On fais commencer le sol à (0,0), faut changer ça
  ->Utiliser les directions pour améliorer le code des portes ?

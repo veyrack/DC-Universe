@@ -172,9 +172,12 @@ updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap | x >= 0 && y >=0 && x1>=0 && y
                                                  |otherwise = False
 
 --Retourne une Case associé a un objet de type String
+-- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
 getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Sortie" = Sortie
+                         | entity == "Zombie" = Zombie
+                         | entity == "Entree" = Entree
                          | otherwise = Vide 
 
 getCaseFromString_pre :: String -> Bool

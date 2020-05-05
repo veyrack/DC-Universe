@@ -274,7 +274,7 @@ main = do
   renderer <- createRenderer window (-1) defaultRenderer
 
   --Generation d'un terrain à partir d'un fichier
-  terrain <-terrainGenerator "src/test.txt"
+  terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
 
   -- chargement du sol

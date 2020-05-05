@@ -185,13 +185,16 @@ openaDoor gs@(GameState (Translation tx ty) _ sp (Perso px py d) (Terrain  ht lg
                                                                                        | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ferme) ) = let f = (Porte EO Ouvert)  in gs {terrain =(Terrain ht lg (C.updateValueMap c (Coord a b) f ))}
                                                                                        | ((Map.lookup (Coord a b) c))== (Just (Porte EO Ouvert) ) = let f = (Porte EO Ferme)  in gs {terrain =(Terrain ht lg (C.updateValueMap c (Coord a b) f ))}
                                                                                        | otherwise = gs
-                                                            
+openaDoor_pre :: GameState -> CInt -> CInt -> Bool
+openaDoor_pre = undefined                                                    
 
 testDoor::GameState -> GameState
 testDoor gs@(GameState (Translation tx ty) _ sp (Perso px py _) (Terrain  ht lg c) _) = let (a,b) =(isitaDoor gs px py) in 
                                                                   if (a,b) /= ((-1),(-1)) 
                                                                     then (openaDoor gs a b)
                                                                       else gs
+testDoor_pre :: GameState -> Bool
+testDoor_pre = undefined
 
 -- |Fonction d'action des coffres
 testChest :: GameState -> GameState
@@ -253,19 +256,23 @@ move_pre gs (Coord x y) = undefined
 ->ligne 71 : 24 = 20 (bloc du bac) + 4 (déplcement du personnage en pixel)
 
 -}
---Coordonnees stricte personnage axe X (Aka les coordonnées en terme de case et pas de pixel)
+-- |Coordonnees stricte personnage axe X (Aka les coordonnées en terme de case et pas de pixel)
 coordonneesPx:: CInt -> CInt -> CInt -> CInt
 coordonneesPx tx px x = (((px+x)-(fromIntegral tx))`div`20)
 
+--On verifie seuelement que le personnage est au milieu de l'écran, px ne change jamais
 coordonneesPx_pre:: CInt -> CInt -> CInt -> Bool
-coordonneesPx_pre tx px x= undefined
+coordonneesPx_pre _ px _= px ==350
 
 --Coordonnees stricte personnage axe Y (Aka les coordonnées en terme de case et pas de pixel)
 coordonneesPy:: CInt -> CInt -> CInt -> CInt
 coordonneesPy ty py y= (((py+25+y)-(fromIntegral ty))`div`20)
 
+--On verifie seuelement que le personnage est au milieu de l'écran, py ne change jamais
 coordonneesPy_pre:: CInt -> CInt -> CInt -> Bool
-coordonneesPy_pre ty py y= undefined
+coordonneesPy_pre _ py _= py == 350
+
+-- |Outils de debuguage
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py _) (Terrain  ht lg c) etatjeu) = do
@@ -275,7 +282,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py _) (Terrain  ht l
   let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   --print ()
   --print ( "-------", door)
-  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), etatjeu ,"-----------")
+  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), tx, ty ,py,"-----------")
 
 ------------------------------------------------------------------------------------------------
 
