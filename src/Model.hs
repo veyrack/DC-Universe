@@ -227,6 +227,9 @@ tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terra
 testPique :: GameState -> GameState
 testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) | let (x,y) = (isitanEntity gs "Pique Ferme" px py) in (objectOnPosition carte x y) ==
 
+-- | Fonctions qui gère la vie du perso
+changePv:: GameState-> Int -> GameState
+changePv gs@(GameState (Perso px py d v)) vie = gs {Perso px py d (v-vie)}
 
 -- |IA
 action :: GameState -> IO (GameState)
