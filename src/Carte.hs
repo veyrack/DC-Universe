@@ -151,6 +151,11 @@ getCoordonneesObjectMap carte object= M.keys $ filterWithKey (\k v -> (Just v)==
 getCoordonneesObjectMap_pre ::  Eq a => (Map Coord a) -> Maybe a -> Bool
 getCoordonneesObjectMap_pre carte object = undefined
 
+-- | Test d'entite dans toute la map pour les preconditions
+testMap :: Map Coord Case -> String -> Bool
+testMap c entity = M.foldr (\x b -> b || x == (getCaseFromString entity) ) False c
+
+
 -- |Fonctions Utilitaires
 --Met a jour la valeur d'un objet dans la carte du GameState
 updateValueMap::(Map Coord Case) -> Coord -> Case -> (Map Coord Case)
@@ -174,10 +179,16 @@ updateKeyMap_pre (Coord x y) (Coord x1 y1) myMap | x >= 0 && y >=0 && x1>=0 && y
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
-getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
+getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ferme)
+                         | entity == "Coffre Ouvert" = (Coffre Ouvert)       
                          | entity == "Sortie" = Sortie
                          | entity == "Zombie" = Zombie
                          | entity == "Entree" = Entree
+                         | entity == "Mur" = Mur
+                         | entity == "Porte NS Ferme" = Porte NS Ferme 
+                         | entity == "Porte NS Ouvert" = Porte NS Ouvert
+                         | entity == "Porte EO Ferme" = Porte EO Ferme
+                         | entity == "Porte EO Ouvert" = Porte EO Ouvert
                          | otherwise = Vide 
 
 getCaseFromString_pre :: String -> Bool
