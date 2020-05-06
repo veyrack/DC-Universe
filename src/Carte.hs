@@ -185,6 +185,11 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just (Pique Ferme) -> False
                                                                     Nothing -> False) 
 
+-- | Test d'entite dans toute la map pour les preconditions
+testMap :: Map Coord Case -> String -> Bool
+testMap c entity = M.foldr (\x b -> b || x == (getCaseFromString entity) ) False c
+
+
 -- |Fonctions Utilitaires
 --Met a jour la valeur d'un objet dans la carte du GameState
 updateValueMap::(Map Coord Case) -> Coord -> Case -> (Map Coord Case)
@@ -215,9 +220,16 @@ updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && (
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
-getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert) -- utiliser pour ouvrir un coffre
+getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
+                         | entity == "Coffre Ouvert" = (Coffre Ferme)       
                          | entity == "Sortie" = Sortie
-                         | entity == "Pique Ferme" = (Pique Ouvert)
+                         | entity == "Zombie" = Zombie
+                         | entity == "Entree" = Entree
+                         | entity == "Mur" = Mur
+                         | entity == "Porte NS Ferme" = Porte NS Ferme 
+                         | entity == "Porte NS Ouvert" = Porte NS Ouvert
+                         | entity == "Porte EO Ferme" = Porte EO Ferme
+                         | entity == "Porte EO Ouvert" = Porte EO Ouvert
                          | otherwise = Vide 
 
 --Si resultat non vide c'est true sinon false
