@@ -42,6 +42,13 @@ import qualified Data.Map.Strict as Map
 import Carte
 import qualified Carte as C
 
+import Control.Exception
+import Exception
+import qualified Exception as E
+
+import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
+import qualified SDL.Video.Renderer as R
+
 
 --Screen size
 hauteurWin :: CInt
@@ -143,6 +150,22 @@ loadPorteOuvert rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("porteouvert")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("porteouvert")) sprite smap
   return (tmap', smap')
+
+--charge les pique ouvert
+loadPiqueOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadPiqueOuvert rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("piqueouvert")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("piqueouvert")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("piqueouvert")) sprite smap
+  return (tmap', smap')
+
+--charge les pique ferme
+loadPiqueFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadPiqueFerme rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("piqueferme")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("piqueferme")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("piqueferme")) sprite smap
+  return (tmap', smap')
   
 --charge le text du titre
 loadTextTitle:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
@@ -158,6 +181,13 @@ loadTextWin rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("win")) tmap
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("win")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*10)) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("win")) sprite smap
+  return (tmap', smap')
+--Charge le texte de défaite
+loadTextLose:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadTextLose rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("lose")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("lose")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*10)) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("lose")) sprite smap
   return (tmap', smap')
 
 --Charge la sortie
@@ -188,6 +218,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
   displayMob renderer tmap smap carte transx trany --display les ennemis
   displaySortie renderer tmap smap carte transx trany --display la sortie
+  displayPiqueOuvert renderer tmap smap carte transx trany --display pique invisible
+  displayPiqueFerme renderer tmap smap carte transx trany --display pique visible
   return ()
   --display portes
 
@@ -248,6 +280,24 @@ displayPorteOuvert renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("porteouvert")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayPiqueOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayPiqueOuvert renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Pique Ouvert) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("piqueouvert")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
+displayPiqueFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayPiqueFerme renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Pique Ferme) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("piqueferme")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
 displayMob::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
 displayMob renderer tmap smap carte transx transy= do
   let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Zombie )) carte
@@ -265,6 +315,14 @@ displaySortie renderer tmap smap carte transx transy= do
     test ((Coord x y):as) = do 
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sortie")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
+
+displayVie :: Renderer-> CInt -> IO ()
+displayVie renderer vie= do
+  let life= (vie*40) `div` 100
+  let rectangle = drawRect renderer (Just (S.mkArea (persoX-10) persoY 40 10)) in rectangle
+  let fillrect = fillRect renderer (Just (S.mkArea (persoX-10) persoY life 10)) in fillrect
+  --let rectangle = createtexture RGB24 TextureAccessStreaming
+ -- R.copy renderer
 --------------------------------------
 
 main :: IO ()
@@ -277,6 +335,10 @@ main = do
   terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
 
+  --Test si la map est valide
+  if (not $ carteValide contenu)
+    then throw InvalidMapException else putStrLn "Carte : Pass"
+    
   -- chargement du sol
   (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
   --chargement des murs
@@ -291,16 +353,21 @@ main = do
   (tmap, smap) <- loadMob renderer "assets/zombie2.png" tmap smap
   --chargement de la sortie
   (tmap, smap) <- loadSortie renderer "assets/mob.png" tmap smap
+  --charge les pieges
+  (tmap, smap) <- loadPiqueFerme renderer "assets/PiegeAsset/piqueferme.png" tmap smap
+  (tmap, smap) <- loadPiqueOuvert renderer "assets/PiegeAsset/piqueouvert.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
   --chargement texte ecran titre
   (tmap', smap') <- loadTextTitle renderer "assets/title.png" tmap' smap'
   --chargement texte ecran win
   (tmap', smap') <- loadTextWin renderer "assets/youwin.png" tmap' smap'
+  --chargemen texte ecran loose
+  (tmap', smap') <- loadTextLose renderer "assets/youlose.png" tmap' smap'
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -312,7 +379,7 @@ main = do
 
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d) (Terrain  ht lg contenu) etatjeu) = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d vie) (Terrain  ht lg contenu) etatjeu) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
@@ -322,15 +389,18 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --- display toutes les couches du background
   displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty)) contenu
 
+  --Représente la vie du personnage
+  displayVie renderer vie
+
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
   --Test l'état du jeu
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
-
+  if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
   --print (M.testSortie gameState)
-  --M.collision2 gameState
+  M.collision2 gameState
   --print (contenu)
   present renderer
   endTime <- time
@@ -368,8 +438,24 @@ title renderer kbd tmap smap gs = do
   endTime <- time
   unless (K.keypressed KeycodeReturn kbd') (title renderer kbd tmap smap gs)
 
+--Ecran de victoire
 youwin :: Renderer -> Keyboard -> TextureMap -> SpriteMap -> GameState -> IO ()
 youwin renderer kbd tmap smap gs = do
+  startTime <- time
+  events <- pollEvents
+  let kbd' = K.handleEvents events kbd
+  clear renderer
+
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "win") smap)
+                                100
+                                100)
+  present renderer
+  endTime <- time
+  unless (K.keypressed KeycodeReturn kbd') (youwin renderer kbd tmap smap gs)
+
+--Ecran de défaite
+youlose :: Renderer -> Keyboard -> TextureMap -> SpriteMap -> GameState -> IO ()
+youlose renderer kbd tmap smap gs = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd

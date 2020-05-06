@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac238ce08f22ba883487104c0a937fea8cec367137d5db174b8b27dafbe979f6
+-- hash: a60eb9ad26e0f3e0a80ae6b80b611dc90fd34d75f80dfb1dffe6a16d2faae38b
 
 name:           DCuniverse
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Carte
+      Exception
       Keyboard
       Lib
       Model
