@@ -216,16 +216,14 @@ testSortie_pre::GameState -> Bool
 testSortie_pre gs =undefined
 
 -- | Fonctions lié aux pieges
-{-
+
 tombeDansPiege:: GameState -> GameState
 tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terrain  ht lg c) _) | (isitanEntity gs "Pique Ferme" px py) /= ((-1),(-1))  = (openEntity (gs {Perso px py d (vie-20)) "Pique Ferme" }
                                                                                                 | otherwise = gs
 testPique :: GameState -> GameState
-testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) _) = (isitanEntity gs "Pique Ferme" px py) 
-                                                                  f (a,b) /= ((-1),(-1)) 
-                                                                    then (openEntity gs {Perso px py d (vie-20)} "Pique Ferme" a b) 
-                                                                      else gs
--}
+testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) | let (x,y) = (isitanEntity gs "Pique Ferme" px py) in (objectOnPosition carte x y) ==
+
+
 -- |IA
 action:: GameState -> IO (GameState)
 action gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) _)= do
