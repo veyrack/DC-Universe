@@ -367,7 +367,7 @@ main = do
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 50) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard

@@ -205,11 +205,16 @@ testDoor_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Porte Ferm
 testChest :: GameState -> GameState
 testChest gs@(GameState _ _ _ (Perso px py d _) (Terrain  ht lg c) _) = let (a,b) = (isitanEntity gs "Coffre Ferme" px py) in 
                                                                         if (a,b) /= ((-1),(-1)) 
-                                                                          then (openEntity gs "Coffre Ferme" a b) 
+                                                                          then (openChest gs "Coffre Ferme" a b) 
                                                                           else gs
 
 testChest_pre :: GameState -> Bool
 testChest_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Coffre Ferme"
+
+openChest :: GameState -> String -> CInt -> CInt -> GameState
+openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 10
+                                                                  | otherwise = gs
+
 
 -- |Fonction de Sortie
 testSortie :: GameState -> Bool
