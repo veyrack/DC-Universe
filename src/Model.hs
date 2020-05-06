@@ -205,11 +205,16 @@ testDoor_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Porte Ferm
 testChest :: GameState -> GameState
 testChest gs@(GameState _ _ _ (Perso px py d _) (Terrain  ht lg c) _) = let (a,b) = (isitanEntity gs "Coffre Ferme" px py) in 
                                                                         if (a,b) /= ((-1),(-1)) 
-                                                                          then (openEntity gs "Coffre Ferme" a b) 
+                                                                          then (openChest gs "Coffre Ferme" a b) 
                                                                           else gs
 
 testChest_pre :: GameState -> Bool
 testChest_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Coffre Ferme"
+
+openChest :: GameState -> String -> CInt -> CInt -> GameState
+openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 10
+                                                                  | otherwise = gs
+
 
 -- |Fonction de Sortie
 testSortie :: GameState -> Bool
@@ -220,16 +225,21 @@ testSortie_pre :: GameState -> Bool
 testSortie_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Sortie"
 
 -- | Fonctions lié aux pieges
-
-tombeDansPiege:: GameState -> GameState
+{-
+tombeDansPiege :: GameState -> GameState
 tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terrain  ht lg c) _) | (isitanEntity gs "Pique Ferme" px py) /= ((-1),(-1))  = (openEntity (gs {Perso px py d (vie-20)) "Pique Ferme" }
                                                                                                 | otherwise = gs
 testPique :: GameState -> GameState
 testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) | let (x,y) = (isitanEntity gs "Pique Ferme" px py) in (objectOnPosition carte x y) ==
-
+-}
 -- | Fonctions qui gère la vie du perso
-changePv:: GameState-> Int -> GameState
-changePv gs@(GameState (Perso px py d v)) vie = gs {Perso px py d (v-vie)}
+changePv :: GameState -> CInt -> GameState
+changePv gs@(GameState _ _ _(Perso px py d v) _ _) vie = let v'=v+vie in
+                                                  if v' > 100
+                                                    then gs{perso = (Perso px py d 100)}
+                                                    else if v' < 0 
+                                                      then gs{perso = (Perso px py d 0)}
+                                                      else gs{perso = (Perso px py d v')}
 
 -- |IA
 action :: GameState -> IO (GameState)
