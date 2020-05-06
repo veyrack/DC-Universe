@@ -29,7 +29,7 @@ data Translation = Translation { transX :: CInt
 data Perso = Perso { persoX :: CInt
                      ,persoY :: CInt
                      ,direction :: DirectionPerso
-                     ,vie :: Int
+                     ,vie :: CInt
                     }
                     deriving (Show)
 
@@ -215,6 +215,17 @@ testSortie gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht
 testSortie_pre::GameState -> Bool
 testSortie_pre gs =undefined
 
+-- | Fonctions lié aux pieges
+{-
+tombeDansPiege:: GameState -> GameState
+tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terrain  ht lg c) _) | (isitanEntity gs "Pique Ferme" px py) /= ((-1),(-1))  = (openEntity (gs {Perso px py d (vie-20)) "Pique Ferme" }
+                                                                                                | otherwise = gs
+testPique :: GameState -> GameState
+testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) _) = (isitanEntity gs "Pique Ferme" px py) 
+                                                                  f (a,b) /= ((-1),(-1)) 
+                                                                    then (openEntity gs {Perso px py d (vie-20)} "Pique Ferme" a b) 
+                                                                      else gs
+-}
 -- |IA
 action:: GameState -> IO (GameState)
 action gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) _)= do
@@ -277,13 +288,13 @@ coordonneesPy_pre _ py _= py == 350
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py _ _) (Terrain  ht lg c) etatjeu) = do
-  let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
-  let test= testSortie gs
-  let touttile=(collisionTileRight gs px py )
-  let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
+  --let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
+  --let test= testPique gs
+  --let touttile=(collisionTileRight gs px py )
+  --let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   --print ()
   --print ( "-------", door)
-  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), tx, ty ,py,"-----------")
+  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), (isitanEntity gs "Pique Ferme" px py),"-----------")
 
 ------------------------------------------------------------------------------------------------
 
@@ -301,7 +312,7 @@ gameStep gstate kbd deltaTime | (testSortie gstate) = gstate {etatjeu = Gagner}
                               | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeS kbd) = (moveDown (moveLeft gstate))
                               | (K.keypressed KeycodeQ kbd) && (K.keypressed KeycodeD kbd) = gstate
                               | (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeS kbd) = gstate
-                              | (K.keypressed KeycodeE kbd) = (testChest (testDoor gstate)) 
+                              | (K.keypressed KeycodeE kbd) = (testChest (testDoor gstate))
                               | (K.keypressed KeycodeD kbd) = (moveRight gstate)
                               | (K.keypressed KeycodeQ kbd) = (moveLeft gstate)
                               | (K.keypressed KeycodeZ kbd) = (moveUp gstate)

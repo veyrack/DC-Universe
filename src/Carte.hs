@@ -16,6 +16,7 @@ data Case = Vide
     | Entree
     | Sortie
     | Zombie
+    | Pique Statut
     deriving (Eq, Show)
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
@@ -49,6 +50,7 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== 'E' = createTheMap as (M.insert (Coord x y) (Entree) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'z' = createTheMap as (M.insert (Coord x y) (Zombie) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'S' = createTheMap as (M.insert (Coord x y) (Sortie) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'p' = createTheMap as (M.insert (Coord x y) (Pique Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
 createTheMap_pre :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> Bool
@@ -131,6 +133,8 @@ objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
                                                 Just Entree -> "Entree"
                                                 Just Sortie -> "Sortie"
                                                 Just Zombie -> "Zombie"
+                                                Just (Pique Ouvert) -> "Pique Ouvert"
+                                                Just (Pique Ferme) -> "Pique Ferme"
                                                 Nothing -> "Nothing")
 
 collision :: (Map Coord Case) ->CInt -> CInt -> Bool
@@ -145,6 +149,8 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just Entree -> False
                                                 Just Sortie -> False
                                                 Just Zombie -> True
+                                                Just (Pique Ouvert) -> False
+                                                Just (Pique Ferme) -> False
                                                 Nothing -> False)
 
 --Verifie que la carte n'est pas vide et que x et y sont positif (annoding peut-être mais c'est pour garder une certaine cohérence -> les coordonnées sont toutes positives)
@@ -175,6 +181,8 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just Entree -> False
                                                                     Just Sortie -> False
                                                                     Just Zombie -> True
+                                                                    Just (Pique Ouvert) -> False
+                                                                    Just (Pique Ferme) -> False
                                                                     Nothing -> False) 
 
 -- |Fonctions Utilitaires
@@ -207,8 +215,9 @@ updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && (
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
-getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
+getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert) -- utiliser pour ouvrir un coffre
                          | entity == "Sortie" = Sortie
+                         | entity == "Pique Ferme" = (Pique Ouvert)
                          | otherwise = Vide 
 
 --Si resultat non vide c'est true sinon false
