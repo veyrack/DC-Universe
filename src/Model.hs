@@ -221,15 +221,29 @@ testSortie_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Sortie"
 
 -- | Fonctions lié aux pieges
 
-tombeDansPiege:: GameState -> GameState
-tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terrain  ht lg c) _) | (isitanEntity gs "Pique Ferme" px py) /= ((-1),(-1))  = (openEntity (gs {Perso px py d (vie-20)) "Pique Ferme" }
-                                                                                                | otherwise = gs
-testPique :: GameState -> GameState
-testPique gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) | let (x,y) = (isitanEntity gs "Pique Ferme" px py) in (objectOnPosition carte x y) ==
+tombeDansPiege:: GameState -> Bool
+tombeDansPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d vie) (Terrain  ht lg c) _) = (isitanEntity gs "Pique Ferme" px py) /= ((-1),(-1)) || (isitanEntity gs "Pique Ouvert" px py) /= ((-1),(-1))
+
+testPiege :: GameState -> GameState
+testPiege gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
+  let (x,y) = (isitanEntity gs "Pique Ferme" px py) in 
+    if ((objectOnPosition carte x y) == "Pique Ferme")
+      then (openEntity (changePv gs (-20)) "Pique Ferme" x y) { translate = (Translation (tx+25) ty)}
+        else  let (x,y) = (isitanEntity gs "Pique Ouvert" px py) in  if ((objectOnPosition carte x y) == "Pique Ouvert")
+                then (changePv gs (-20)) {translate = (Translation (tx+50) ty)}
+                  else gs
+
+--closeToOpen :: GameState -> GameState
+--closeToOpen gs = let (x,y) = (isitanEntity gs "Pique Ferme" px py) in (openEntity (changePv gs (-20)) "Pique Ferme" x y)
 
 -- | Fonctions qui gère la vie du perso
-changePv:: GameState-> Int -> GameState
-changePv gs@(GameState (Perso px py d v)) vie = gs {Perso px py d (v-vie)}
+changePv :: GameState -> CInt -> GameState
+changePv gs@(GameState _ _ _ (Perso px py d v) _ _) vie = let v'=v+vie in
+                                                    if v' > 100
+                                                      then gs {perso = (Perso px py d 100)}
+                                                      else if v' < 0 
+                                                        then gs {perso = (Perso px py d 0)}
+                                                        else gs {perso = (Perso px py d v')}
 
 -- |IA
 action :: GameState -> IO (GameState)
@@ -299,7 +313,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py _ _) (Terrain  ht
   -- let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   --print ()
   --print ( "-------", door)
-  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), (isitanEntity gs "Pique Ferme" px py),"-----------")
+  print ("--------", (Coord (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 0) ), (tombeDansPiege gs),"-----------")
 
 ------------------------------------------------------------------------------------------------
 
@@ -309,6 +323,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py _ _) (Terrain  ht
 
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (testSortie gstate) = gstate {etatjeu = Gagner}
+                              | (tombeDansPiege gstate) = (testPiege gstate)
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveRight gstate))

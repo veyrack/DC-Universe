@@ -186,7 +186,7 @@ loadTextWin rdr path tmap smap = do
 loadTextLose:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadTextLose rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("lose")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("lose")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*10)) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("lose")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*30)) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("lose")) sprite smap
   return (tmap', smap')
 
@@ -397,7 +397,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
                                  persoX
                                 persoY)
   --Test l'état du jeu
-  if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
+  --if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
   --print (M.testSortie gameState)
   M.collision2 gameState
@@ -461,9 +461,9 @@ youlose renderer kbd tmap smap gs = do
   let kbd' = K.handleEvents events kbd
   clear renderer
 
-  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "win") smap)
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "lose") smap)
                                 100
-                                100)
+                                50)
   present renderer
   endTime <- time
-  unless (K.keypressed KeycodeReturn kbd') (youwin renderer kbd tmap smap gs)
+  unless (K.keypressed KeycodeReturn kbd') (youlose renderer kbd tmap smap gs)

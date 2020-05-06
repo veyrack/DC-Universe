@@ -219,6 +219,7 @@ updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && (
 
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
+--Les valeur du coffre et pique sont inversé (SI ferme on renvoie ouvert et vis versa) pour effectuer un changement plus facilement ? Ou pas
 getCaseFromString :: String -> Case
 getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Coffre Ouvert" = (Coffre Ferme)       
@@ -230,6 +231,8 @@ getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Porte NS Ouvert" = Porte NS Ouvert
                          | entity == "Porte EO Ferme" = Porte EO Ferme
                          | entity == "Porte EO Ouvert" = Porte EO Ouvert
+                         | entity == "Pique Ouvert" = Pique Ferme
+                         | entity == "Pique Ferme" = Pique Ouvert
                          | otherwise = Vide 
 
 --Si resultat non vide c'est true sinon false
