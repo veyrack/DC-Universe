@@ -220,8 +220,8 @@ updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && (
 --Retourne une Case associé a un objet de type String
 -- Principalement utilisé pour factorisé le code du model
 getCaseFromString :: String -> Case
-getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ferme)
-                         | entity == "Coffre Ouvert" = (Coffre Ouvert)       
+getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
+                         | entity == "Coffre Ouvert" = (Coffre Ferme)       
                          | entity == "Sortie" = Sortie
                          | entity == "Zombie" = Zombie
                          | entity == "Entree" = Entree
