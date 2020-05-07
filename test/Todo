@@ -11,6 +11,10 @@ V-> Si le perso va vraiment vite sur la sortie, la detection de la sortie n'a pa
         -> Si positon en pixel, pas la map: Trouver une solution pour que le perso touche le mob
     -> Parfois il peux effacer les coffres (A cause du delete dans updateKeyMap ) : Il faut rajotuer la condtion qu'il peut aller que quand lookup d'une map est nothing
 
+-> Les Pique
+    ->Le perso passe pas entre un mur et un pique quand il est dans une direction NS mais ok pour EO
+    -> Parfois il rebondit trop loin quand il touche les pique alors il se retrouve dans un mur si perso entre un mur et pique
+
 ----A faire---
 
 V-> Generateur de labyrinthes /!En cours!\

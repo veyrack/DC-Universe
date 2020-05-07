@@ -26,12 +26,12 @@ xxxxxxxxxxxx                 xxxxx   xxxxxxxxx
 x                                            x
 x                               x            x
 x   S                                        x
-x                z              p            x                              
+x                               p  x         x                              
 x                                            x                              
 x                       E       x            x                              
 x                                            x               
 x                                            x
-x                                       p    x
+x                                    x p x   x
 x                x                           x                              
 x                x                           x                              
 xxxxxxxx         x     c                     x              

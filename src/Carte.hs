@@ -242,3 +242,7 @@ getCaseFromString_post entity = entity == "Coffre Ferme" || entity == "Sortie"
 --Verifie si la carte est valide
 carteValide :: (Map Coord Case) -> Bool
 carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte
+
+--Check si la case est vide
+checkCaseVide :: Coord -> (Map Coord Case) -> Bool
+checkCaseVide coord carte  = (M.lookup coord carte) == Nothing
