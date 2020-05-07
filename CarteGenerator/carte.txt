@@ -24,17 +24,17 @@ x    c     x        x        x               x
 x          x        x        x               x
 xxxxxxxxxxxx                 xxxxx   xxxxxxxxx
 x                                            x
-x                                            x
+x                               x            x
 x   S                                        x
 x                z              p            x                              
 x                                            x                              
-x                       E                    x                              
+x                       E       x            x                              
 x                                            x               
 x                                            x
-x                                            x
+x                                       p    x
 x                x                           x                              
 x                x                           x                              
 xxxxxxxx         x     c                     x              
-x      x         x                           x
+x      x         x          x     p          x
 x      |         x                           x           
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
