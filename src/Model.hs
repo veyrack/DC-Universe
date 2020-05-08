@@ -147,23 +147,23 @@ isitanEntityFlex gs entity x y | (isitanEntityLeftFlex gs entity x y ) /= ((-1),
                                | otherwise = (isitanEntityDownFlex gs entity x y)
 
 isitanEntityRightFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityRightFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                         | py<y+8 = (isitanEntityRightFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityRightFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 12)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                         | py<y+17 = (isitanEntityRightFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
                                                                                                          | otherwise = ((-1),(-1))
 
 isitanEntityLeftFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityLeftFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                        | py<y+8 = (isitanEntityLeftFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityLeftFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 12) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                        | py<y+17 = (isitanEntityLeftFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 isitanEntityUpFlex :: GameState -> String -> CInt -> CInt  -> (CInt, CInt)
 isitanEntityUpFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py 0) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
-                                                                                                       | px<x+17 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+                                                                                                       | px<x+12 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
                                                                                                        | otherwise = ((-1),(-1))
 
 isitanEntityDownFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
 isitanEntityDownFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 16 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                                                        | px<x+17 = (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+                                                                                                        | px<x+12= (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 -- |Fonction d'action des portes
@@ -232,7 +232,7 @@ testChest_pre :: GameState -> Bool
 testChest_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Coffre Ferme"
 
 openChest :: GameState -> String -> CInt -> CInt -> GameState
-openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 10
+openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
                                                                   | otherwise = gs
 
 
@@ -257,21 +257,21 @@ testPiege gs@(GameState _ _ _ (Perso px py _ _) _ _) | (isitanEntityFlex gs "Piq
 
 actionPiqueFerme :: GameState -> GameState
 actionPiqueFerme gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
-  let (x,y) = (isitanEntityFlex gs "Pique Ferme" px py) in checkProjection $ openEntity (changePv gs (0)) "Pique Ferme" x y
+  let (x,y) = (isitanEntityFlex gs "Pique Ferme" px py) in checkProjection $ openEntity (changePv gs (-10)) "Pique Ferme" x y
 
 actionPiqueOuvert :: GameState -> GameState
 actionPiqueOuvert gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
-  let (x,y) = (isitanEntityFlex gs "Pique Ouvert" px py) in checkProjection $ changePv gs (0)
+  let (x,y) = (isitanEntityFlex gs "Pique Ouvert" px py) in checkProjection $ changePv gs (-10)
 
 checkProjection :: GameState -> GameState
 checkProjection gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain ht lg carte) _) 
-                    | d == North && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty-25) py 0))) carte) =  gs {translate = (Translation tx (ty-25))}
+                    | d == North && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty-25) py 0))) carte) =  gs {translate = (Translation tx (ty-8))}
                     | d == North = gs {translate = (Translation tx (ty-sp))} -- J'utilise pas movedown sinon la direction change et ça nous emène dans une autre condition
-                    | d == South && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty+25) py 0))) carte)= gs {translate = (Translation tx (ty+25))}
+                    | d == South && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty+25) py 0))) carte)= gs {translate = (Translation tx (ty+8))}
                     | d == South = gs {translate = (Translation tx (ty+sp))}
-                    | d == East && (checkCaseVide (Coord (coordonneesPx (tx+25) px 0) ((coordonneesPy ty py 0))) carte)= gs {translate = (Translation (tx+25) ty)}
+                    | d == East && (checkCaseVide (Coord (coordonneesPx (tx+25) px 0) ((coordonneesPy ty py 0))) carte)= gs {translate = (Translation (tx+8) ty)}
                     | d == East = gs {translate = (Translation (tx-sp) ty)}
-                    | d == West && (checkCaseVide (Coord (coordonneesPx (tx-25) px 0) ((coordonneesPy ty py 0))) carte) = gs {translate = (Translation (tx-25) ty)}
+                    | d == West && (checkCaseVide (Coord (coordonneesPx (tx-25) px 0) ((coordonneesPy ty py 0))) carte) = gs {translate = (Translation (tx-8) ty)}
                     | otherwise = gs {translate = (Translation (tx+sp) ty)}
                   {-
 testPiege :: GameState -> GameState
