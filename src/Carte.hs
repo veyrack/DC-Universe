@@ -102,6 +102,7 @@ auxcheckPortes ((Coord x y):xs) carte | ((objectOnPosition carte x y) == "Porte 
                                       | otherwise = False
 
 -- |Fonction d'entree: Récupère l'entrée dans la carte pour pouvoir placer le joueur
+
 getEntree::(Map Coord Case) -> Coord
 getEntree carte = 
   let monentree = M.keys $ filterWithKey (\k v -> (Just v)==(Just Entree)) carte in
@@ -164,9 +165,6 @@ collision_post carte x y = (M.lookup (Coord x y) carte) /= Nothing
 -- | Récuperer toutes les coordonnées d'un objet en particlier dans la map (ex: tous les coffres ou tous les murs)
 getCoordonneesObjectMap:: (Map Coord Case) -> Maybe Case -> [Coord]
 getCoordonneesObjectMap carte object= M.keys $ filterWithKey (\k v -> (Just v)==object) carte
-
-getCoordonneesObjectMap_post :: (Map Coord Case) -> Maybe Case -> Bool
-getCoordonneesObjectMap_post carte object= undefined
 
 -- Verifie si carte non vide et l'objet est un objet existant
 getCoordonneesObjectMap_pre :: (Map Coord Case) -> Maybe Case -> Bool
@@ -246,3 +244,5 @@ carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie car
 --Check si la case est vide
 checkCaseVide :: Coord -> (Map Coord Case) -> Bool
 checkCaseVide coord carte  = (M.lookup coord carte) == Nothing
+
+

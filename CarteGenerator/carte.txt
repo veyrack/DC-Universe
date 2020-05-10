@@ -13,8 +13,8 @@ xxxxxxxxxxx          |              xxxx-xxxxx
 x                    x                       x
 x                    x                       x
 x          xxxxxxxxxxxxxxxxxxx               x
-x          x        x        |               x
-x          x        x        x               x
+x          x                 |               x
+x          |        x        x               x
 x          xxxxxxxxxxxxxxxxxxx               x
 x                                            x
 x          xxxxxxxxxxxxxxxxxxx               x

@@ -1,2 +1,8 @@
+import Test.Hspec
+
+import Gametest as GT
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = hspec $ do
+    -- Premiers Test 
+    GT.testShouldBe

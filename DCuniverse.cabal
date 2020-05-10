@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a60eb9ad26e0f3e0a80ae6b80b611dc90fd34d75f80dfb1dffe6a16d2faae38b
+-- hash: c8df640ae8609164f1e718623c66227cab451ad19575c97c503580192d213718
 
 name:           DCuniverse
 version:        0.1.0.0
@@ -40,9 +40,11 @@ library
   hs-source-dirs:
       src
   build-depends:
-      StateVar >=1.2
+      QuickCheck
+    , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2
@@ -58,9 +60,11 @@ executable DCuniverse-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       DCuniverse
+    , QuickCheck
     , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2
@@ -71,15 +75,18 @@ test-suite DCuniverse-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Gametest
       Paths_DCuniverse
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       DCuniverse
+    , QuickCheck
     , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2

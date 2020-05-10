@@ -352,7 +352,7 @@ main = do
   --chargement ennemis
   (tmap, smap) <- loadMob renderer "assets/zombie2.png" tmap smap
   --chargement de la sortie
-  (tmap, smap) <- loadSortie renderer "assets/mob.png" tmap smap
+  (tmap, smap) <- loadSortie renderer "assets/sortie.png" tmap smap
   --charge les pieges
   (tmap, smap) <- loadPiqueFerme renderer "assets/PiegeAsset/piqueferme.png" tmap smap
   (tmap, smap) <- loadPiqueOuvert renderer "assets/PiegeAsset/piqueouvert.png" tmap smap
@@ -399,6 +399,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --Test l'état du jeu
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
+  
   --print (M.testSortie gameState)
   M.collision2 gameState
   --print (contenu)
