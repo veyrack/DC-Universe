@@ -53,9 +53,6 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== 'p' = createTheMap as (M.insert (Coord x y) (Pique Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
-createTheMap_pre :: [Char] -> M.Map Coord Case -> CInt -> CInt -> CInt -> Bool
-createTheMap_pre = undefined
-
 -- |Invariant pour la creation du terrain
 invariantCreateMap:: CInt -> CInt -> M.Map Coord Case -> Bool
 invariantCreateMap ht lg contenu = if (invariantObjets ht lg contenu) && (invariantMurs ht lg contenu) then True else False
@@ -92,7 +89,8 @@ checkPorte carte  =
      let mesportes = M.keys $ filterWithKey (\k v -> ((Just v)==(Just (Porte NS Ferme)) 
                                                     || (Just v)==(Just (Porte EO Ferme))
                                                     || (Just v) == (Just (Porte NS Ouvert))
-                                                    || (Just v) == (Just (Porte EO Ouvert)))) carte in auxcheckPortes mesportes carte
+                                                    || (Just v) == (Just (Porte EO Ouvert)))) carte in 
+                                                        if (length mesportes)>0 then auxcheckPortes mesportes carte else True
 
 auxcheckPortes :: [Coord] -> (Map Coord Case) -> Bool
 auxcheckPortes ((Coord x y):xs) carte | ((objectOnPosition carte x y) == "Porte NS") && ((objectOnPosition carte (x-1) y) == "Mur") && ((objectOnPosition carte (x+1) y) == "Mur")  && xs == [] = True

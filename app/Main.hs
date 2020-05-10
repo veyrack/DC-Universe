@@ -316,13 +316,17 @@ displaySortie renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sortie")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayDebug:: Renderer -> IO ()
+displayDebug renderer = do
+  let color = V4 255 0 0 0
+  rendererDrawColor renderer $= color
+  let rectangle = drawRect renderer (Just (S.mkArea (persoX) (persoY+25) 25 20)) in rectangle
+
 displayVie :: Renderer-> CInt -> IO ()
 displayVie renderer vie= do
   let life= (vie*40) `div` 100
   let rectangle = drawRect renderer (Just (S.mkArea (persoX-10) persoY 40 10)) in rectangle
   let fillrect = fillRect renderer (Just (S.mkArea (persoX-10) persoY life 10)) in fillrect
-  --let rectangle = createtexture RGB24 TextureAccessStreaming
- -- R.copy renderer
 --------------------------------------
 
 main :: IO ()
@@ -334,7 +338,7 @@ main = do
   --Generation d'un terrain à partir d'un fichier
   terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
-
+  print (terrain)
   --Test si la map est valide
   if (not $ carteValide contenu)
     then throw InvalidMapException else putStrLn "Carte : Pass"
@@ -385,24 +389,34 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   let kbd' = K.handleEvents events kbd
   --print("JEU")
   clear renderer
-
+  
+  
   --- display toutes les couches du background
   displayBackground renderer tmap smap 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty)) contenu
 
   --Représente la vie du personnage
   displayVie renderer vie
 
+
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
+
   --Test l'état du jeu
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
   
+  --Display debug
+  displayDebug renderer
   --print (M.testSortie gameState)
-  M.collision2 gameState
+  --M.collision2 gameState
   --print (contenu)
+
+--Background Color
+  let color = V4 0 0 0 0
+  rendererDrawColor renderer $= color
+
   present renderer
   endTime <- time
   let refreshTime = endTime - startTime
