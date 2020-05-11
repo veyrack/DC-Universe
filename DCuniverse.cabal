@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c8df640ae8609164f1e718623c66227cab451ad19575c97c503580192d213718
+-- hash: ca4a6168b1faef8d12e3228d014eb24854aa6fe503fcb9cf27085c2a0559465a
 
 name:           DCuniverse
 version:        0.1.0.0
@@ -75,7 +75,8 @@ test-suite DCuniverse-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Gametest
+      CarteTest
+      ModelTest
       Paths_DCuniverse
   hs-source-dirs:
       test

@@ -179,7 +179,7 @@ loadTextTitle rdr path tmap smap = do
 loadTextWin:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadTextWin rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("win")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("win")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*10)) --bloc de 20pixel
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("win")) (S.mkArea 0 0 (tailleBloc*30) (tailleBloc*20)) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("win")) sprite smap
   return (tmap', smap')
 --Charge le texte de défaite
@@ -334,11 +334,17 @@ main = do
   initializeAll
   window <- getWindow
   renderer <- createRenderer window (-1) defaultRenderer
+  --chargement des ressources
+  (kbd,tmap',smap', gameState) <- chargementRessources renderer
+  -- |Menu du jeu
+  title renderer kbd tmap' smap' gameState
 
+chargementRessources:: Renderer -> IO (Keyboard,TextureMap,SpriteMap,GameState)
+chargementRessources renderer= do
   --Generation d'un terrain à partir d'un fichier
   terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
-  print (terrain)
+  --print (terrain)
   --Test si la map est valide
   if (not $ carteValide contenu)
     then throw InvalidMapException else putStrLn "Carte : Pass"
@@ -365,7 +371,7 @@ main = do
   --chargement texte ecran titre
   (tmap', smap') <- loadTextTitle renderer "assets/title.png" tmap' smap'
   --chargement texte ecran win
-  (tmap', smap') <- loadTextWin renderer "assets/youwin.png" tmap' smap'
+  (tmap', smap') <- loadTextWin renderer "assets/youwin2.png" tmap' smap'
   --chargemen texte ecran loose
   (tmap', smap') <- loadTextLose renderer "assets/youlose.png" tmap' smap'
 
@@ -375,12 +381,7 @@ main = do
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
-
-  -- |Menu 
-  title renderer kbd tmap' smap' gameState
-  -- lancement de la gameLoop
-  gameLoop 60 renderer tmap' smap' kbd gameState
-
+  return (kbd,tmap',smap',gameState)
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
 gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d vie) (Terrain  ht lg contenu) etatjeu) = do
@@ -407,7 +408,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
   
-  --Display debug
+  -- |Display debug
   displayDebug renderer
   --print (M.testSortie gameState)
   --M.collision2 gameState
@@ -449,7 +450,13 @@ title renderer kbd tmap smap gs = do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "text") smap)
                                 100
                                 100)
+  
+  if ((K.keypressed KeycodeReturn kbd')) 
+    then (gameLoop 60 renderer tmap smap kbd' gs)
+    else return () 
+
   present renderer
+  
   endTime <- time
   unless (K.keypressed KeycodeReturn kbd') (title renderer kbd tmap smap gs)
 
@@ -461,12 +468,21 @@ youwin renderer kbd tmap smap gs = do
   let kbd' = K.handleEvents events kbd
   clear renderer
 
+  displaySol renderer tmap smap 0 0 hauteurWin largeurWin 0 0
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "win") smap)
                                 100
-                                100)
-  present renderer
+                                100)                
+  
+  if ((K.keypressed KeycodeR kbd')) 
+    then do
+      (keyb,tmap',smap', gameState) <- chargementRessources renderer 
+      (gameLoop 60 renderer tmap' smap' keyb gameState)
+    else return () 
+
+  present renderer  
+
   endTime <- time
-  unless (K.keypressed KeycodeReturn kbd') (youwin renderer kbd tmap smap gs)
+  unless (K.keypressed KeycodeReturn kbd) (youwin renderer kbd tmap smap gs)
 
 --Ecran de défaite
 youlose :: Renderer -> Keyboard -> TextureMap -> SpriteMap -> GameState -> IO ()
@@ -476,9 +492,17 @@ youlose renderer kbd tmap smap gs = do
   let kbd' = K.handleEvents events kbd
   clear renderer
 
+  displaySol renderer tmap smap 0 0 hauteurWin largeurWin 0 0
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "lose") smap)
                                 100
                                 50)
+  
+  if ((K.keypressed KeycodeR kbd')) 
+    then do
+      (keyb,tmap',smap', gameState) <- chargementRessources renderer 
+      (gameLoop 60 renderer tmap' smap' keyb gameState)
+    else return () 
+
   present renderer
   endTime <- time
   unless (K.keypressed KeycodeReturn kbd') (youlose renderer kbd tmap smap gs)

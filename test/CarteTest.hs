@@ -1,4 +1,4 @@
-module Gametest where
+module CarteTest where
 
 import Test.Hspec
 import Test.QuickCheck

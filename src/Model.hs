@@ -24,14 +24,14 @@ import Control.Concurrent (threadDelay)
 data Translation = Translation { transX :: CInt
                                 ,transY :: CInt
                                 } 
-                                deriving (Show)
+                                deriving (Show,Eq)
 
 data Perso = Perso { persoX :: CInt
                      ,persoY :: CInt
                      ,direction :: DirectionPerso
                      ,vie :: CInt
                     }
-                    deriving (Show)
+                    deriving (Show,Eq)
 
 data EtatJeu = Gagner 
               | Perdu
@@ -45,7 +45,7 @@ data GameState = GameState { translate :: Translation
                             ,terrain :: Terrain
                             ,etatjeu :: EtatJeu
                            }
-  deriving (Show)
+  deriving (Show, Eq) 
 
 data DirectionPerso = North | West | South | East deriving (Eq,Show)
 
@@ -237,7 +237,7 @@ testChest_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Coffre Fe
 
 openChest :: GameState -> String -> CInt -> CInt -> GameState
 openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
-                                                                  | otherwise = gs
+                                                                 | otherwise = gs
 
 
 -- |Fonction de Sortie

@@ -19,11 +19,12 @@ V-> Si le perso va vraiment vite sur la sortie, la detection de la sortie n'a pa
 ----A faire---
 
 V-> Generateur de labyrinthes /!En cours!\
-    ->Generer ennemis
+    V->Generer ennemis
 
 -> Ouverture de coffre: 
     V->action avec la touche "E" + display coffre ouvert /!\
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
+        V-> Gain de vie
 
 V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
     V-> Ferme porte
@@ -31,7 +32,7 @@ V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se 
 V->Sortie du labyrinthe: si sortie, jeu terminé
 
 V->Entree du labyrinthe: positionner camera et joueur sur l'entree
-    -> Renvoyer une exception si plusieurs entree
+    V-> Renvoyer une exception si plusieurs entree
 
 ->Menu du jeu
     V->play
@@ -42,7 +43,7 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
     V-> Ajout d'une direction (N,S,E,O) /!\
     ->display de direction: animation de changement de direction.
     ->dispaly de ramassage de stuff: get key,sword.. (à la zelda)
-    ->display vie du personnage (Afficher une barre de vie)
+    V->display vie du personnage (Afficher une barre de vie)
 
 -> IA mob:
     V-> Ennemi passif
@@ -59,8 +60,8 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
 -> Generateur de labyrinthes
     V-> Objet présent dans la map (Pas de coffre en dehors du donjon par exemple)
     V-> Unique entree et sortie
-    -> Porte entre deux murs
-    -> Sortie accessible depuis l'entree
+    V-> Porte entre deux murs
+    -> Sortie accessible depuis l'entree (PAs encore vérifié)
 
 ---Optimisations----
  -> Displays Mur, coffres etc.. : En une seul fonction en O(n)?
