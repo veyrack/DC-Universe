@@ -14,8 +14,14 @@ terr = initTerrain 100 100 (fromList [(Coord 10 10,Pique Ferme),
                                         (Coord 18 18,Sortie)
                                         ])
 
+terr2 :: Terrain
+terr2 = initTerrain 100 100 (fromList [(Coord 10 10,Porte NS Ouvert)])
+
 gstate :: GameState
 gstate = initGameState (Translation 0 0) (Perso 350 350 North 90) terr --(Terrain 0 0 empty)
+
+gstate2 :: GameState
+gstate2 = initGameState (Translation 0 0) (Perso 350 350 North 90) terr2 --(Terrain 0 0 empty)
 
 changePv_spec0 = do
     describe "test 0 : changePv" $ do
@@ -64,6 +70,10 @@ openDoor_spec = do
                                                                                                 (Coord 30 30,Coffre Ferme),
                                                                                                 (Coord 18 18,Sortie)
                                                                                                 ])}
+closeDoor_spec = do
+    describe "test : close door" $
+        it "Ferme une porte initialement ouverte" $
+            (openaDoor gstate2 10 10) `shouldBe` gstate2 {terrain = initTerrain 100 100 (fromList [(Coord 10 10,Porte NS Ferme)])}
                                                                                                         
 openChest_spec = do
     describe "test : open chest" $
@@ -96,6 +106,7 @@ testShouldBe = do
     moveDown_spec
     openEntity_spec
     openDoor_spec
+    closeDoor_spec
     openChest_spec
     testSortie_spec
     testPiege_spec
