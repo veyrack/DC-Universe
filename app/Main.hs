@@ -413,6 +413,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --print (M.testSortie gameState)
   --M.collision2 gameState
   --print (contenu)
+  --print (gameState)
 
 --Background Color
   let color = V4 0 0 0 0

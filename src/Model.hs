@@ -308,7 +308,7 @@ moveAll gs (x:xs) = do
   moveAll newgs xs
 
 moveAll_pre :: GameState -> [Coord] -> Bool
-moveAll_pre gs coords = undefined
+moveAll_pre gs (x,y) = isEntity "Zombie" x y /= ((-1),(-1))
 
 move :: GameState -> Coord -> IO (GameState)
 move gs@(GameState _ _ _ _ (Terrain  ht lg c) _) (Coord x y)= do
