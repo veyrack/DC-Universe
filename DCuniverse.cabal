@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac238ce08f22ba883487104c0a937fea8cec367137d5db174b8b27dafbe979f6
+-- hash: ca4a6168b1faef8d12e3228d014eb24854aa6fe503fcb9cf27085c2a0559465a
 
 name:           DCuniverse
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Carte
+      Exception
       Keyboard
       Lib
       Model
@@ -39,9 +40,11 @@ library
   hs-source-dirs:
       src
   build-depends:
-      StateVar >=1.2
+      QuickCheck
+    , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2
@@ -57,9 +60,11 @@ executable DCuniverse-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       DCuniverse
+    , QuickCheck
     , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2
@@ -70,15 +75,19 @@ test-suite DCuniverse-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CarteTest
+      ModelTest
       Paths_DCuniverse
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       DCuniverse
+    , QuickCheck
     , StateVar >=1.2
     , base >=4.7 && <5
     , containers
+    , hspec
     , linear
     , random
     , sdl2

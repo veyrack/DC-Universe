@@ -27,6 +27,8 @@ dependencies:
 - sdl2-image
 - random
 - StateVar >= 1.2
+- hspec
+- QuickCheck
 
 library:
   source-dirs: src
