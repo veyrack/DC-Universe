@@ -205,6 +205,21 @@ loadMob rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("mob")) (S.mkArea 0 0 25 35) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("mob")) sprite smap
   return (tmap', smap')
+
+--charge les cloture electrique
+loadClotureElectriqueOuvertNS:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadClotureElectriqueOuvertNS rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("ClotureElectriqueOuvertNS")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("ClotureElectriqueOuvertNS")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("ClotureElectriqueOuvertNS")) sprite smap
+  return (tmap', smap')
+
+loadClotureElectriqueFermeNS:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadClotureElectriqueFermeNS rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("ClotureElectriqueFermeNS")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("ClotureElectriqueFermeNS")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("ClotureElectriqueFermeNS")) sprite smap
+  return (tmap', smap')
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -220,6 +235,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displaySortie renderer tmap smap carte transx trany --display la sortie
   displayPiqueOuvert renderer tmap smap carte transx trany --display pique invisible
   displayPiqueFerme renderer tmap smap carte transx trany --display pique visible
+  displayClotureElectriqueOuvertNS renderer tmap smap carte transx trany --display Cloture Electrique allumer
+  displayClotureElectriqueFermeNS renderer tmap smap carte transx trany --display Cloture Electrique éteint
   return ()
   --display portes
 
@@ -307,6 +324,24 @@ displayMob renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("mob")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayClotureElectriqueOuvertNS :: Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayClotureElectriqueOuvertNS renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (ClotureElectrique NS Ouvert) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("ClotureElectriqueOuvertNS")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
+displayClotureElectriqueFermeNS :: Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayClotureElectriqueFermeNS renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (ClotureElectrique NS Ferme) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("ClotureElectriqueFermeNS")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
 displaySortie::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
 displaySortie renderer tmap smap carte transx transy= do
   let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Sortie )) carte
@@ -366,6 +401,9 @@ chargementRessources renderer= do
   --charge les pieges
   (tmap, smap) <- loadPiqueFerme renderer "assets/PiegeAsset/piqueferme.png" tmap smap
   (tmap, smap) <- loadPiqueOuvert renderer "assets/PiegeAsset/piqueouvert.png" tmap smap
+  --charge les clotures electrique
+  (tmap, smap) <- loadClotureElectriqueOuvertNS renderer "assets/ClotureElectrique/ClotureElectriqueOuvertNS.png" tmap smap
+  (tmap, smap) <- loadClotureElectriqueFermeNS renderer "assets/ClotureElectrique/ClotureElectriqueFermeNS.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
   --chargement texte ecran titre
@@ -411,7 +449,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   -- |Display debug
   displayDebug renderer
   --print (M.testSortie gameState)
-  --M.collision2 gameState
+  M.collision2 gameState
   --print (contenu)
   --print (gameState)
 

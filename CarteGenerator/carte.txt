@@ -1,40 +1,12 @@
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 x                                            x 
-x                                            x
-x                                            x
-x                                            x
-x                                            x
-x                                            x
-x                                            x
-x         xxxxxxxxxxxxxxxxxxxxxxxxxxx        x
-x         |          x              x        x
-x         x          x              x        x
-xxxxxxxxxxx          |              xxxx-xxxxx
-x                    x                       x
-x                    x                       x
-x          xxxxxxxxxxxxxxxxxxx               x
-x          x                 |               x
-x          |        x        x               x
-x          xxxxxxxxxxxxxxxxxxx               x
-x                                            x
-x          xxxxxxxxxxxxxxxxxxx               x
-x          x        x        x               x
-x          x        x        x               x
-x    c     x        x        x               x
-x          x        x        x               x
-xxxxxxxxxxxx                 xxxxx   xxxxxxxxx
-x                                            x
-x                               x            x
-x   S                                        x
-x                               p  x         x                              
-x                                            x                              
-x                               x            x                              
-x                                            x               
-x                                            x
-x                                    x p x   x
-x                x                           x                              
-x                x                           x                              
-xxxxxxxx         x     c                     x              
-x      x         x          x     p          x
-x E    |         x                           x           
+x               c                            x
+x                                 x p x      x
+x                xxx-xxxx                    x
+x               x        x              x    x
+x               x   E                        x
+x                xxxxxxxx               p    x
+xpppp ppppxxxxxxxxxxxxxxxxxxxxxwxxxxx        x
+x         |          x              |        x
+x    S    x          |              x        x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

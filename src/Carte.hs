@@ -17,6 +17,7 @@ data Case = Vide
     | Sortie
     | Zombie
     | Pique Statut
+    | ClotureElectrique Direction Statut
     deriving (Eq, Show)
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
@@ -52,6 +53,8 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== 'z' = createTheMap as (M.insert (Coord x y) (Zombie) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'S' = createTheMap as (M.insert (Coord x y) (Sortie) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'p' = createTheMap as (M.insert (Coord x y) (Pique Ferme) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'w' = createTheMap as (M.insert (Coord x y) (ClotureElectrique NS Ouvert) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'k' = createTheMap as (M.insert (Coord x y) (ClotureElectrique EO Ouvert) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
 -- |Invariant pour la creation du terrain
@@ -130,6 +133,8 @@ objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
                                                 Just (Porte EO Ferme) -> "Porte EO"
                                                 Just (Porte EO Ouvert) -> "Porte EO"
                                                 Just (Porte NS Ouvert) -> "Porte NS"
+                                                Just (ClotureElectrique NS Ouvert) -> "ClotureElectrique NS Ouvert"
+                                                Just (ClotureElectrique NS Ferme) -> "ClotureElectrique NS Ferme"
                                                 Just Entree -> "Entree"
                                                 Just Sortie -> "Sortie"
                                                 Just Zombie -> "Zombie"
@@ -146,6 +151,8 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just (Porte NS Ouvert) -> False
                                                 Just (Porte EO Ferme) -> True
                                                 Just (Porte EO Ouvert) -> False
+                                                Just (ClotureElectrique NS Ouvert) -> False
+                                                Just (ClotureElectrique NS Ferme) -> False
                                                 Just Entree -> False
                                                 Just Sortie -> False
                                                 Just Zombie -> True
@@ -175,6 +182,8 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just (Porte NS Ouvert) -> False
                                                                     Just (Porte EO Ferme) -> True
                                                                     Just (Porte EO Ouvert) -> False
+                                                                    Just (ClotureElectrique NS Ouvert) -> False
+                                                                    Just (ClotureElectrique NS Ferme) -> False
                                                                     Just Entree -> False
                                                                     Just Sortie -> False
                                                                     Just Zombie -> True
@@ -230,9 +239,12 @@ getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Porte EO Ouvert" = Porte EO Ouvert
                          | entity == "Pique Ouvert" = Pique Ferme
                          | entity == "Pique Ferme" = Pique Ouvert
+                         | entity == "ClotureElectrique NS Ouvert" = ClotureElectrique NS Ferme
+                         | entity == "ClotureElectrique NS Ferme" = ClotureElectrique NS Ouvert
                          | otherwise = Vide 
 
 --Si resultat non vide c'est true sinon false
+--A REVOIR
 getCaseFromString_post :: String -> Bool
 getCaseFromString_post entity = entity == "Coffre Ferme" || entity == "Sortie"
 

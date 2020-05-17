@@ -78,23 +78,23 @@ moveDown gs@(GameState (Translation tx ty) _ sp (Perso px py _ v) _ _)= if (coll
 
 -------------------Detection de collision pour chaqu'un des bord du personnages (Haut, bas, gauche, droite)------------------------
 collisionTileLeft :: GameState -> CInt -> CInt -> Bool
-collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y  | (Carte.collision c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
+collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
                                                                                                     | py<y+8 = (collisionTileLeft (gs {perso = (Perso px (py+1) d v)}) x y)
                                                                                                     | otherwise= False
 
 collisionTileRight :: GameState -> CInt -> CInt  -> Bool
-collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)) == True = True
+collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 27) (coordonneesPy (fromIntegral ty) py 0)) == True = True
                                                                                                     | py<y+8 = (collisionTileRight (gs {perso = (Perso px (py+1) d v)}) x y)
                                                                                                     | otherwise= False
--- Le 17 et 8 modifier pour collisiontileup collisiontiledown
+
 collisionTileUp :: GameState -> CInt -> CInt  -> Bool
 collisionTileUp gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
-                                                                                                  | px<x+17 = (collisionTileUp (gs {perso = (Perso (px+1) py d v)}) x y)
+                                                                                                  | px<x+15 = (collisionTileUp (gs {perso = (Perso (px+1) py d v)}) x y)
                                                                                                   | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
 collisionTileDown gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
-                                                                                                   | px<x+17 = (collisionTileDown (gs {perso = (Perso (px+1) py d v)}) x y)
+                                                                                                   | px<x+15 = (collisionTileDown (gs {perso = (Perso (px+1) py d v)}) x y)
                                                                                                    | otherwise= False
 
 ------------------------------------------Detection de collision-------------------------------------
@@ -158,13 +158,15 @@ isitanEntityLeftFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Te
 
 isitanEntityUpFlex :: GameState -> String -> CInt -> CInt  -> (CInt, CInt)
 isitanEntityUpFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py 0) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
-                                                                                                       | px<x+12 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+                                                                                                       | px<x+15 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
                                                                                                        | otherwise = ((-1),(-1))
 
 isitanEntityDownFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
 isitanEntityDownFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 16 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                                                        | px<x+12= (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+                                                                                                        | px<x+15= (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
+
+-- |Fonction de detection d'un objet pour un point donnée
 
 -- |Fonction d'action des portes
 
@@ -252,11 +254,14 @@ testSortie_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Sortie"
 
 tombeDansPiege:: GameState -> Bool
 tombeDansPiege gs@(GameState _ _ _ (Perso px py _ _) _ _) =
-   (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) || (isitanEntityFlex gs "Pique Ouvert" px py) /= ((-1),(-1))
+  (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) 
+  || (isitanEntityFlex gs "Pique Ouvert" px py) /= ((-1),(-1))
+  || (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) /= ((-1),(-1))
 
 testPiege :: GameState -> GameState
 testPiege gs@(GameState _ _ _ (Perso px py _ _) _ _) | (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) = actionPiqueFerme gs
                                                      | (isitanEntityFlex gs "Pique Ouvert" px py) /= ((-1),(-1)) = actionPiqueOuvert gs
+                                                     | (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) /= ((-1),(-1)) = actionClotureElectrique gs
                                                      | otherwise = gs
 
 actionPiqueFerme :: GameState -> GameState
@@ -267,6 +272,20 @@ actionPiqueOuvert :: GameState -> GameState
 actionPiqueOuvert gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
   let (x,y) = (isitanEntityFlex gs "Pique Ouvert" px py) in checkProjection $ changePv gs (-10)
 
+--Fonction CLoture Electrique
+actionClotureElectrique :: GameState -> GameState
+actionClotureElectrique gs@(GameState _ _ _ (Perso px py _ _) _ _) =
+  let (x,y) = (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) in checkProjection $ changePv gs (-20)
+
+actionLevier:: GameState -> GameState
+actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) =  
+  let clotures = (getCoordonneesObjectMap carte (Just (ClotureElectrique NS Ouvert))) in 
+    if (length clotures >0) 
+      then let ((Coord x y):xs) = clotures in openEntity gs "ClotureElectrique NS Ouvert" x y
+      else 
+        gs
+
+-- Permet de donné l'effet de vibration lorsque le perso touche des piques
 checkProjection :: GameState -> GameState
 checkProjection gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain ht lg carte) _) 
                     | d == North && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty-25) py 0))) carte) =  gs {translate = (Translation tx (ty-8))}
@@ -355,12 +374,13 @@ coordonneesPy_pre _ py _= py == 350
 collision2 :: GameState -> IO ()
 collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) etatjeu) = do
   -- let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
-  -- let test= testPique gs
+  --let clotures = (getCoordonneesObjectMap c (Just (ClotureElectrique NS Ouvert)))
+  --let ((Coord x y):xs)= clotures
   -- let touttile=(collisionTileRight gs px py )
   -- let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   --print ()
   --print ( "-------", door)
-  print ("--------", checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy ty py 0)+1)) c, (tombeDansPiege gs),d ,"-----------")
+  print ("--------",d ,"-----------")
 
 ------------------------------------------------------------------------------------------------
 
