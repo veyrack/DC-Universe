@@ -277,13 +277,21 @@ actionClotureElectrique :: GameState -> GameState
 actionClotureElectrique gs@(GameState _ _ _ (Perso px py _ _) _ _) =
   let (x,y) = (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) in checkProjection $ changePv gs (-20)
 
-actionLevier:: GameState -> GameState
-actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) =  
-  let clotures = (getCoordonneesObjectMap carte (Just (ClotureElectrique NS Ouvert))) in 
-    if (length clotures >0) 
-      then let ((Coord x y):xs) = clotures in openEntity gs "ClotureElectrique NS Ouvert" x y
-      else 
-        gs
+actionLevier:: GameState -> Coord -> GameState
+actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=  
+  let clotures = (getCoordonneesObjectMap carte (Just (ClotureElectrique NS Ouvert))) 
+    in auxActionLevier clotures where
+      auxActionLevier [] = gs
+      auxActionLevier clotures = auxActionLevier2 clotures levierCoord (Coord 0 0) (maxBound::CInt) where
+        auxActionLevier2 [] _ (Coord x y) _= openEntity gs "ClotureElectrique NS Ouvert" x y
+        auxActionLevier2 (x:xs) levierCoord coord value | Model.distance levierCoord x < value = auxActionLevier2 xs levierCoord x (Model.distance levierCoord x)
+                                                        | otherwise = auxActionLevier2 xs levierCoord coord value
+
+distance :: Coord -> Coord -> CInt
+distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
+                                          where
+                                            x'= fromIntegral (x1 - x2)
+                                            y'= fromIntegral (y1 - y2) 
 
 -- Permet de donné l'effet de vibration lorsque le perso touche des piques
 checkProjection :: GameState -> GameState

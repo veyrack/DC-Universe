@@ -18,6 +18,7 @@ data Case = Vide
     | Zombie
     | Pique Statut
     | ClotureElectrique Direction Statut
+    | Levier Statut
     deriving (Eq, Show)
 
 data Coord = Coord { cx :: CInt, cy ::CInt} deriving (Eq,Show,Ord)
@@ -55,6 +56,7 @@ createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mym
                                  | a== 'p' = createTheMap as (M.insert (Coord x y) (Pique Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'w' = createTheMap as (M.insert (Coord x y) (ClotureElectrique NS Ouvert) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'k' = createTheMap as (M.insert (Coord x y) (ClotureElectrique EO Ouvert) mymap) (x+1) y (if lg< x then x else lg )
+                                 | a== 'l' = createTheMap as (M.insert (Coord x y) (Levier Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
 -- |Invariant pour la creation du terrain
@@ -140,6 +142,8 @@ objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
                                                 Just Zombie -> "Zombie"
                                                 Just (Pique Ouvert) -> "Pique Ouvert"
                                                 Just (Pique Ferme) -> "Pique Ferme"
+                                                Just (Levier Ferme) -> "Levier Ferme"
+                                                Just (Levier Ouvert) -> "Levier Ouvert"
                                                 Nothing -> "Nothing")
 
 collision :: (Map Coord Case) ->CInt -> CInt -> Bool
@@ -158,6 +162,8 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just Zombie -> True
                                                 Just (Pique Ouvert) -> False
                                                 Just (Pique Ferme) -> False
+                                                Just (Levier Ferme) -> True
+                                                Just (Levier Ouvert) -> True
                                                 Nothing -> False)
 
 --Verifie que la carte n'est pas vide et que x et y sont positif (annoding peut-être mais c'est pour garder une certaine cohérence -> les coordonnées sont toutes positives)
@@ -189,6 +195,8 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just Zombie -> True
                                                                     Just (Pique Ouvert) -> False
                                                                     Just (Pique Ferme) -> False
+                                                                    Just (Levier Ouvert) -> True
+                                                                    Just (Levier Ferme) -> True
                                                                     Nothing -> False) 
 
 -- | Test d'entite dans toute la map pour les preconditions
@@ -241,6 +249,8 @@ getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Pique Ferme" = Pique Ouvert
                          | entity == "ClotureElectrique NS Ouvert" = ClotureElectrique NS Ferme
                          | entity == "ClotureElectrique NS Ferme" = ClotureElectrique NS Ouvert
+                         | entity == "Levier Ouvert" = Levier Ferme
+                         | entity == "Levier Ferme" = Levier Ouvert
                          | otherwise = Vide 
 
 --Si resultat non vide c'est true sinon false
