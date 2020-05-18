@@ -451,14 +451,14 @@ chargementRessources renderer= do
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100 (fromList [(M.Potion,0)] )) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
   return (kbd,tmap',smap',gameState)
 
 gameLoop :: (RealFrac a, Show a) => a -> Renderer -> TextureMap -> SpriteMap -> Keyboard -> GameState -> IO ()
-gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d vie) (Terrain  ht lg contenu) etatjeu) = do
+gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation tx ty) tour sp (M.Perso px py d vie inv) (Terrain  ht lg contenu) etatjeu) = do
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
@@ -485,7 +485,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   -- |Display debug
   displayDebug renderer
   --print (M.testSortie gameState)
-  M.collision2 gameState
+  --M.collision2 gameState
   --print (contenu)
   --print (gameState)
 

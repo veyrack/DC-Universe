@@ -27,11 +27,15 @@ data Translation = Translation { transX :: CInt
                                 deriving (Show,Eq)
 
 data Perso = Perso { persoX :: CInt
-                     ,persoY :: CInt
-                     ,direction :: DirectionPerso
-                     ,vie :: CInt
+                    ,persoY :: CInt
+                    ,direction :: DirectionPerso
+                    ,vie :: CInt
+                    ,inventaire :: Map Item CInt
                     }
                     deriving (Show,Eq)
+
+data Item = Potion
+            deriving (Show,Eq,Ord)
 
 data EtatJeu = Gagner 
               | Perdu
@@ -57,44 +61,44 @@ initGameState translation perso terrain = GameState translation 0 4 perso terrai
 
 ---------------------Deplacement du personnage (Ici, le déplacement du personnage est en réalité une translation de l'environnement, soit un scrolling)-------------
 moveLeft :: GameState -> GameState
-moveLeft gs@(GameState (Translation tx ty) _ sp (Perso px py _ v) _ _)= if (collisionTileLeft gs px py ) 
-                                                                        then gs {perso = (Perso px py West v)} 
-                                                                        else gs {translate = (Translation (tx+sp) ty), perso = (Perso px py West v)}
+moveLeft gs@(GameState (Translation tx ty) _ sp (Perso px py _ v inv) _ _)= if (collisionTileLeft gs px py ) 
+                                                                        then gs {perso = (Perso px py West v inv)} 
+                                                                        else gs {translate = (Translation (tx+sp) ty), perso = (Perso px py West v inv)}
 
 moveRight :: GameState -> GameState
-moveRight gs@(GameState (Translation tx ty) _ sp (Perso px py _ v) _ _)= if (collisionTileRight gs px py ) 
-                                                                        then gs {perso = (Perso px py East v)}
-                                                                        else gs {translate = (Translation (tx-sp) ty), perso = (Perso px py East v)}
+moveRight gs@(GameState (Translation tx ty) _ sp (Perso px py _ v inv) _ _)= if (collisionTileRight gs px py ) 
+                                                                        then gs {perso = (Perso px py East v inv)}
+                                                                        else gs {translate = (Translation (tx-sp) ty), perso = (Perso px py East v inv)}
                               
 moveUp :: GameState -> GameState
-moveUp gs@(GameState (Translation tx ty) _ sp (Perso px py _ v) _ _)= if (collisionTileUp gs px py) 
-                                                                      then gs {perso = (Perso px py North v)}
-                                                                      else gs {translate = (Translation tx (ty+sp)), perso = (Perso px py North v)}
+moveUp gs@(GameState (Translation tx ty) _ sp (Perso px py _ v inv) _ _)= if (collisionTileUp gs px py) 
+                                                                      then gs {perso = (Perso px py North v inv)}
+                                                                      else gs {translate = (Translation tx (ty+sp)), perso = (Perso px py North v inv)}
 
 moveDown :: GameState -> GameState
-moveDown gs@(GameState (Translation tx ty) _ sp (Perso px py _ v) _ _)= if (collisionTileDown gs px py)
-                                                                        then gs {perso = (Perso px py South v)}
-                                                                        else gs {translate = (Translation tx (ty-sp)), perso = (Perso px py South v)}
+moveDown gs@(GameState (Translation tx ty) _ sp (Perso px py _ v inv) _ _)= if (collisionTileDown gs px py)
+                                                                        then gs {perso = (Perso px py South v inv)}
+                                                                        else gs {translate = (Translation tx (ty-sp)), perso = (Perso px py South v inv)}
 
 -------------------Detection de collision pour chaqu'un des bord du personnages (Haut, bas, gauche, droite)------------------------
 collisionTileLeft :: GameState -> CInt -> CInt -> Bool
-collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
-                                                                                                    | py<y+8 = (collisionTileLeft (gs {perso = (Perso px (py+1) d v)}) x y)
+collisionTileLeft gs@(GameState (Translation tx ty) _ sp (Perso px py d v inv) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == True = True --
+                                                                                                    | py<y+8 = (collisionTileLeft (gs {perso = (Perso px (py+1) d v inv)}) x y)
                                                                                                     | otherwise= False
 
 collisionTileRight :: GameState -> CInt -> CInt  -> Bool
-collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 27) (coordonneesPy (fromIntegral ty) py 0)) == True = True
-                                                                                                    | py<y+8 = (collisionTileRight (gs {perso = (Perso px (py+1) d v)}) x y)
+collisionTileRight gs@(GameState (Translation tx ty) _ sp (Perso px py d v inv) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 27) (coordonneesPy (fromIntegral ty) py 0)) == True = True
+                                                                                                    | py<y+8 = (collisionTileRight (gs {perso = (Perso px (py+1) d v inv)}) x y)
                                                                                                     | otherwise= False
 
 collisionTileUp :: GameState -> CInt -> CInt  -> Bool
-collisionTileUp gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
-                                                                                                  | px<x+15 = (collisionTileUp (gs {perso = (Perso (px+1) py d v)}) x y)
+collisionTileUp gs@(GameState (Translation tx ty) _ sp (Perso px py d v inv) (Terrain  ht lg c) _) x y  | (collision c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py (-4))) == True = True
+                                                                                                  | px<x+15 = (collisionTileUp (gs {perso = (Perso (px+1) py d v inv)}) x y)
                                                                                                   | otherwise= False
 
 collisionTileDown :: GameState -> CInt -> CInt -> Bool
-collisionTileDown gs@(GameState (Translation tx ty) _ sp (Perso px py d v) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
-                                                                                                   | px<x+15 = (collisionTileDown (gs {perso = (Perso (px+1) py d v)}) x y)
+collisionTileDown gs@(GameState (Translation tx ty) _ sp (Perso px py d v inv) (Terrain  ht lg c) _) x y | (collision c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 20 )) == True = True
+                                                                                                   | px<x+15 = (collisionTileDown (gs {perso = (Perso (px+1) py d v inv)}) x y)
                                                                                                    | otherwise= False
 
 ------------------------------------------Detection de collision-------------------------------------
@@ -116,23 +120,23 @@ isitanEntity gs entity x y | (isitanEntityLeft gs entity x y ) /= ((-1),(-1)) = 
                            | otherwise = (isitanEntityDown gs entity x y)
 
 isitanEntityRight :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityRight gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                         | py<y+8 = (isitanEntityRight (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityRight gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                         | py<y+8 = (isitanEntityRight (gs {perso = (Perso px (py+1) d v inv)}) entity x y)
                                                                                                          | otherwise = ((-1),(-1))
 
 isitanEntityLeft :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityLeft gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                        | py<y+8 = (isitanEntityLeft (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityLeft gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                        | py<y+8 = (isitanEntityLeft (gs {perso = (Perso px (py+1) d v inv)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 isitanEntityUp :: GameState -> String -> CInt -> CInt  -> (CInt, CInt)
-isitanEntityUp gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y  | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-8)) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
-                                                                                                       | px<x+25 = (isitanEntityUp (gs {perso = (Perso (px+1) py d v)}) entity x y)
+isitanEntityUp gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y  | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-8)) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
+                                                                                                       | px<x+25 = (isitanEntityUp (gs {perso = (Perso (px+1) py d v inv)}) entity x y)
                                                                                                        | otherwise = ((-1),(-1))
 
 isitanEntityDown :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityDown gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 20 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                                                        | px<x+25 = (isitanEntityDown (gs {perso = (Perso (px+1) py d v)}) entity x y)
+isitanEntityDown gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 20 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+                                                                                                        | px<x+25 = (isitanEntityDown (gs {perso = (Perso (px+1) py d v inv)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 openEntity :: GameState -> String -> CInt -> CInt -> GameState
@@ -147,23 +151,23 @@ isitanEntityFlex gs entity x y | (isitanEntityLeftFlex gs entity x y ) /= ((-1),
                                | otherwise = (isitanEntityDownFlex gs entity x y)
 
 isitanEntityRightFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityRightFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 12)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                         | py<y+17 = (isitanEntityRightFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityRightFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 12)) (coordonneesPy (fromIntegral ty) py 0))== entity = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                         | py<y+17 = (isitanEntityRightFlex (gs {perso = (Perso px (py+1) d v inv)}) entity x y)
                                                                                                          | otherwise = ((-1),(-1))
 
 isitanEntityLeftFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityLeftFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 12) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                                        | py<y+17 = (isitanEntityLeftFlex (gs {perso = (Perso px (py+1) d v)}) entity x y)
+isitanEntityLeftFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 12) (coordonneesPy (fromIntegral ty) py 0)) == entity = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                                        | py<y+17 = (isitanEntityLeftFlex (gs {perso = (Perso px (py+1) d v inv)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 isitanEntityUpFlex :: GameState -> String -> CInt -> CInt  -> (CInt, CInt)
-isitanEntityUpFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py 0) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
-                                                                                                       | px<x+15 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+isitanEntityUpFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  8) (coordonneesPy (fromIntegral ty) py 0) ) == entity = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
+                                                                                                       | px<x+15 = (isitanEntityUpFlex (gs {perso = (Perso (px+1) py d v inv)}) entity x y)
                                                                                                        | otherwise = ((-1),(-1))
 
 isitanEntityDownFlex :: GameState -> String -> CInt -> CInt -> (CInt, CInt)
-isitanEntityDownFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 16 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                                                        | px<x+15= (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v)}) entity x y)
+isitanEntityDownFlex gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) entity x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 8) (coordonneesPy (fromIntegral ty) py 16 ) ) == entity = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+                                                                                                        | px<x+15= (isitanEntityDownFlex (gs {perso = (Perso (px+1) py d v inv)}) entity x y)
                                                                                                         | otherwise = ((-1),(-1))
 
 -- |Fonction de detection d'un objet pour un point donnée
@@ -184,23 +188,23 @@ isitaDoor_post gs x y = isitaDoor gs x y /= ((-1),(-1))
 
 --Portes Ouest-Est
 isitaDoorRight :: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorRight gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py (-8)))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                               | py<y+8 = (isitaDoorRight (gs {perso = (Perso px (py+1) d v)}) x y)
+isitaDoorRight gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) x y | (objectOnPosition c ((coordonneesPx (fromIntegral tx) px 29)) (coordonneesPy (fromIntegral ty) py (-8)))=="Porte EO" = ((coordonneesPx (fromIntegral tx) px 29),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                               | py<y+8 = (isitaDoorRight (gs {perso = (Perso px (py+1) d v inv)}) x y)
                                                                                                | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorLeft :: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorLeft gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
-                                                                                              | py<y+8 = (isitaDoorLeft (gs {perso = (Perso px (py+1) d v)}) x y)
+isitaDoorLeft gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px (-4)) (coordonneesPy (fromIntegral ty) py 0)) == "Porte EO" = ((coordonneesPx (fromIntegral tx) px (-4)),(coordonneesPy (fromIntegral ty) py 0))
+                                                                                              | py<y+8 = (isitaDoorLeft (gs {perso = (Perso px (py+1) d v inv)}) x y)
                                                                                               | otherwise = ((-1),(-1)) --Pas de porte
 --Portes Nord-Sud
 isitaDoorUp :: GameState -> CInt -> CInt  -> (CInt, CInt)
-isitaDoorUp gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) x y  | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
-                                                                                             | px<x+25 = (isitaDoorUp (gs {perso = (Perso (px+1) py d v)}) x y)
+isitaDoorUp gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) x y  | (objectOnPosition c (coordonneesPx (fromIntegral tx) px  0) (coordonneesPy (fromIntegral ty) py (-4)) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px  0),(coordonneesPy (fromIntegral ty) py (-4)))
+                                                                                             | px<x+25 = (isitaDoorUp (gs {perso = (Perso (px+1) py d v inv)}) x y)
                                                                                              | otherwise = ((-1),(-1)) --Pas de porte
 
 isitaDoorDown :: GameState -> CInt -> CInt -> (CInt, CInt)
-isitaDoorDown gs@(GameState (Translation tx ty) _ _ (Perso px py d v) (Terrain  ht lg c) _) x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
-                                                                                              | px<x+25 = (isitaDoorDown (gs {perso = (Perso (px+1) py d v)}) x y)
+isitaDoorDown gs@(GameState (Translation tx ty) _ _ (Perso px py d v inv) (Terrain  ht lg c) _) x y | (objectOnPosition c (coordonneesPx (fromIntegral tx) px 0) (coordonneesPy (fromIntegral ty) py 24 ) ) == "Porte NS" = ((coordonneesPx (fromIntegral tx) px 0),(coordonneesPy (fromIntegral ty) py 24 ))
+                                                                                              | px<x+25 = (isitaDoorDown (gs {perso = (Perso (px+1) py d v inv)}) x y)
                                                                                               | otherwise = ((-1),(-1)) --Pas de porte
 
 
@@ -220,7 +224,7 @@ openaDoor_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) a b | ((Map.lookup (Co
                                                               | ((Map.lookup (Coord a b) c)) == (Just (Porte EO Ouvert)) = True
                                                               | otherwise = False
 testDoor :: GameState -> GameState
-testDoor gs@(GameState _ _ _ (Perso px py _ _) (Terrain  ht lg c) _) = let (a,b) = (isitaDoor gs px py) in 
+testDoor gs@(GameState _ _ _ (Perso px py _ _ _) (Terrain  ht lg c) _) = let (a,b) = (isitaDoor gs px py) in 
                                                                       if (a,b) /= ((-1),(-1)) 
                                                                         then (openaDoor gs a b)
                                                                         else gs
@@ -229,7 +233,7 @@ testDoor_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Porte Ferm
 
 -- |Fonction d'action des coffres
 testChest :: GameState -> GameState
-testChest gs@(GameState _ _ _ (Perso px py d _) (Terrain  ht lg c) _) = let (a,b) = (isitanEntity gs "Coffre Ferme" px py) in 
+testChest gs@(GameState _ _ _ (Perso px py d _ _) (Terrain  ht lg c) _) = let (a,b) = (isitanEntity gs "Coffre Ferme" px py) in 
                                                                         if (a,b) /= ((-1),(-1)) 
                                                                           then (openChest gs "Coffre Ferme" a b) 
                                                                           else gs
@@ -238,13 +242,23 @@ testChest_pre :: GameState -> Bool
 testChest_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Coffre Ferme"
 
 openChest :: GameState -> String -> CInt -> CInt -> GameState
-openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
+openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in looting (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))})
+                                                                 -- | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
                                                                  | otherwise = gs
 
+looting :: GameState -> GameState
+looting gs@(GameState _ _ _ (Perso px py d v inv) _ _) = gs {perso = (Perso px py d v (adjust (+ 1) Potion inv))}
+
+-- |Fonctions d'inventaire
+
+usePotion :: GameState -> GameState
+usePotion gs@(GameState _ _ _ (Perso px py d v inv) _ _) = if inv ! Potion == 0 
+                                                            then gs
+                                                            else changePv (gs {perso = (Perso px py d v (adjust (+ (-1)) Potion inv)) }) 20
 
 -- |Fonction de Sortie
 testSortie :: GameState -> Bool
-testSortie gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) _) = 
+testSortie gs@(GameState (Translation tx ty) _ sp (Perso px py d _ _) (Terrain  ht lg c) _) = 
   let (a,b) =(isitanEntityFlex gs "Sortie" px py) in (a,b) /= ((-1),(-1)) 
 
 testSortie_pre :: GameState -> Bool
@@ -253,28 +267,28 @@ testSortie_pre gs@(GameState _ _ _ _ (Terrain  ht lg c) _) = testMap c "Sortie"
 -- | Fonctions lié aux pieges
 
 tombeDansPiege:: GameState -> Bool
-tombeDansPiege gs@(GameState _ _ _ (Perso px py _ _) _ _) =
+tombeDansPiege gs@(GameState _ _ _ (Perso px py _ _ _) _ _) =
   (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) 
   || (isitanEntityFlex gs "Pique Ouvert" px py) /= ((-1),(-1))
   || (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) /= ((-1),(-1))
 
 testPiege :: GameState -> GameState
-testPiege gs@(GameState _ _ _ (Perso px py _ _) _ _) | (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) = actionPiqueFerme gs
+testPiege gs@(GameState _ _ _ (Perso px py _ _ _) _ _) | (isitanEntityFlex gs "Pique Ferme" px py) /= ((-1),(-1)) = actionPiqueFerme gs
                                                      | (isitanEntityFlex gs "Pique Ouvert" px py) /= ((-1),(-1)) = actionPiqueOuvert gs
                                                      | (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) /= ((-1),(-1)) = actionClotureElectrique gs
                                                      | otherwise = gs
 
 actionPiqueFerme :: GameState -> GameState
-actionPiqueFerme gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
+actionPiqueFerme gs@(GameState (Translation tx ty) _ sp (Perso px py d _ _) (Terrain  ht lg carte) _) =
   let (x,y) = (isitanEntityFlex gs "Pique Ferme" px py) in checkProjection $ openEntity (changePv gs (-10)) "Pique Ferme" x y
 
 actionPiqueOuvert :: GameState -> GameState
-actionPiqueOuvert gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg carte) _) =
+actionPiqueOuvert gs@(GameState (Translation tx ty) _ sp (Perso px py d _ _) (Terrain  ht lg carte) _) =
   let (x,y) = (isitanEntityFlex gs "Pique Ouvert" px py) in checkProjection $ changePv gs (-10)
 
 --Fonction CLoture Electrique
 actionClotureElectrique :: GameState -> GameState
-actionClotureElectrique gs@(GameState _ _ _ (Perso px py _ _) _ _) =
+actionClotureElectrique gs@(GameState _ _ _ (Perso px py _ _ _) _ _) =
   let (x,y) = (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) in checkProjection $ changePv gs (-20)
 
 actionLevier:: GameState -> Coord -> GameState
@@ -289,7 +303,7 @@ actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=
 
 --Fonction de levier
 testLevier :: GameState -> GameState
-testLevier gs@(GameState _ _ sp (Perso px py _ _) _ _) = 
+testLevier gs@(GameState _ _ sp (Perso px py _ _ _) _ _) = 
   let (a,b) =(isitanEntity gs "Levier Ferme" px py) 
     in if (a,b) /= ((-1),(-1)) 
         then (actionLevier gs (Coord a b))
@@ -303,7 +317,7 @@ distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
 
 -- Permet de donné l'effet de vibration lorsque le perso touche des piques
 checkProjection :: GameState -> GameState
-checkProjection gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain ht lg carte) _) 
+checkProjection gs@(GameState (Translation tx ty) _ sp (Perso px py d _ _) (Terrain ht lg carte) _) 
                     | d == North && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty-25) py 0))) carte) =  gs {translate = (Translation tx (ty-8))}
                     | d == North = gs {translate = (Translation tx (ty-sp))} -- J'utilise pas movedown sinon la direction change et ça nous emène dans une autre condition
                     | d == South && (checkCaseVide (Coord (coordonneesPx tx px 0) ((coordonneesPy (ty+25) py 0))) carte)= gs {translate = (Translation tx (ty+8))}
@@ -316,16 +330,16 @@ checkProjection gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrai
 
 -- | Fonctions qui gère la vie du perso
 changePv :: GameState -> CInt -> GameState
-changePv gs@(GameState _ _ _ (Perso px py d v) _ _) vie = let v'=v+vie in
+changePv gs@(GameState _ _ _ (Perso px py d v inv) _ _) vie = let v'=v+vie in
                                                     if v' > 100
-                                                      then gs {perso = (Perso px py d 100)}
+                                                      then gs {perso = (Perso px py d 100 inv)}
                                                       else if v' < 0 
-                                                        then gs {perso = (Perso px py d 0)}
-                                                        else gs {perso = (Perso px py d v')}
+                                                        then gs {perso = (Perso px py d 0 inv)}
+                                                        else gs {perso = (Perso px py d v' inv)}
 
 --verifie si la vie du perso à bien changé
 changePv_post :: GameState -> CInt -> Bool
-changePv_post gs@(GameState _ _ _ (Perso px py d v) _ _) vie = undefined
+changePv_post gs@(GameState _ _ _ (Perso px py d v inv) _ _) vie = undefined
 
 -- |IA
 action :: GameState -> IO (GameState)
@@ -388,7 +402,7 @@ coordonneesPy_pre _ py _= py == 350
 -- |Outils de debuguage
 --renvoie la position du joueur ainsi que la valeur de la case associé à cette position
 collision2 :: GameState -> IO ()
-collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht lg c) etatjeu) = do
+collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _ inv) (Terrain  ht lg c) etatjeu) = do
   -- let door= isitaDoorRight gs (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0)
   --let clotures = (getCoordonneesObjectMap c (Just (ClotureElectrique NS Ouvert)))
   --let ((Coord x y):xs)= clotures
@@ -408,6 +422,7 @@ gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (testSortie gstate) = gstate {etatjeu = Gagner}
                               | (tombeDansPiege gstate)= (testPiege gstate)
                               | (K.keypressed KeycodeE kbd) = (testLevier (testChest (testDoor gstate)))
+                              | (K.keypressed KeycodeA kbd) = (usePotion gstate)
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveRight gstate))
