@@ -287,6 +287,14 @@ actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=
         auxActionLevier2 (x:xs) levierCoord coord value | Model.distance levierCoord x < value = auxActionLevier2 xs levierCoord x (Model.distance levierCoord x)
                                                         | otherwise = auxActionLevier2 xs levierCoord coord value
 
+--Fonction de levier
+testLevier :: GameState -> GameState
+testLevier gs@(GameState _ _ sp (Perso px py _ _) _ _) = 
+  let (a,b) =(isitanEntity gs "Levier Ferme" px py) 
+    in if (a,b) /= ((-1),(-1)) 
+        then (actionLevier gs (Coord a b))
+          else gs
+
 distance :: Coord -> Coord -> CInt
 distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
                                           where
@@ -388,7 +396,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht
   -- let value= (Map.lookup (Coord (coordonneesPx (fromIntegral tx) px 29) (coordonneesPy (fromIntegral ty) py 0) ) c)
   --print ()
   --print ( "-------", door)
-  print ("--------",d ,"-----------")
+  print ("--------",(testLevier gs),d ,"-----------")
 
 ------------------------------------------------------------------------------------------------
 
@@ -399,7 +407,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _) (Terrain  ht
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (testSortie gstate) = gstate {etatjeu = Gagner}
                               | (tombeDansPiege gstate)= (testPiege gstate)
-                              | (K.keypressed KeycodeE kbd) = (testChest (testDoor gstate))
+                              | (K.keypressed KeycodeE kbd) = (testLevier (testChest (testDoor gstate)))
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) = (moveUp (moveRight gstate))

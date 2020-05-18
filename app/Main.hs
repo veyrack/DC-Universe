@@ -220,6 +220,20 @@ loadClotureElectriqueFermeNS rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("ClotureElectriqueFermeNS")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("ClotureElectriqueFermeNS")) sprite smap
   return (tmap', smap')
+
+loadLevierOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadLevierOuvert rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("levierOuvert")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("levierOuvert")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("levierOuvert")) sprite smap
+  return (tmap', smap')
+
+loadLevierFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadLevierFerme rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("levierFerme")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("levierFerme")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("levierFerme")) sprite smap
+  return (tmap', smap')
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -237,6 +251,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displayPiqueFerme renderer tmap smap carte transx trany --display pique visible
   displayClotureElectriqueOuvertNS renderer tmap smap carte transx trany --display Cloture Electrique allumer
   displayClotureElectriqueFermeNS renderer tmap smap carte transx trany --display Cloture Electrique éteint
+  displayLevierOuvert renderer tmap smap carte transx trany --display du levier ON
+  displayLevierFerme renderer tmap smap carte transx trany --display du levier Off
   return ()
   --display portes
 
@@ -351,6 +367,23 @@ displaySortie renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("sortie")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayLevierOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayLevierOuvert renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Levier Ouvert) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("levierOuvert")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+displayLevierFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayLevierFerme renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Levier Ferme) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("levierFerme")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
 displayDebug:: Renderer -> IO ()
 displayDebug renderer = do
   let color = V4 255 0 0 0
@@ -404,6 +437,9 @@ chargementRessources renderer= do
   --charge les clotures electrique
   (tmap, smap) <- loadClotureElectriqueOuvertNS renderer "assets/ClotureElectrique/ClotureElectriqueOuvertNS.png" tmap smap
   (tmap, smap) <- loadClotureElectriqueFermeNS renderer "assets/ClotureElectrique/ClotureElectriqueFermeNS.png" tmap smap
+  --Chargement des leviers
+  (tmap, smap) <- loadLevierOuvert renderer "assets/Levier/leverOn.png" tmap smap
+  (tmap, smap) <- loadLevierFerme renderer "assets/Levier/leverOff.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
   --chargement texte ecran titre
