@@ -14,6 +14,9 @@ type Keyboard = Set Keycode
 createKeyboard :: Keyboard
 createKeyboard = S.empty
 
+
+ -- https://gamedev.stackexchange.com/questions/75344/sdl2-ignoring-repeated-key-input-until-key-is-released
+
 handleEvent :: Event -> Keyboard -> Keyboard
 handleEvent event kbd =
   case eventPayload event of

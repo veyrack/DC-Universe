@@ -5,7 +5,7 @@ import Foreign.C.Types (CInt)
 import Data.Map 
 import qualified Data.Map as M
 
-data Statut = Ouvert |Ferme deriving (Eq,Show) --statut de la porte
+data Statut = Ouvert |Ferme deriving (Eq,Show) --statut pour des portes, des coffres, des piques, des clotures, des leviers
 
 data Direction =NS | EO deriving (Eq,Show) -- A changer plus tard
 

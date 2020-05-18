@@ -485,7 +485,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   -- |Display debug
   displayDebug renderer
   --print (M.testSortie gameState)
-  --M.collision2 gameState
+  --M.collision2 gameState kbd'
   --print (contenu)
   --print (gameState)
 
