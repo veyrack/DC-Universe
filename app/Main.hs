@@ -462,7 +462,6 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   startTime <- time
   events <- pollEvents
   let kbd' = K.handleEvents events kbd
-  --print("JEU")
   clear renderer
   
   
@@ -485,7 +484,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   -- |Display debug
   displayDebug renderer
   --print (M.testSortie gameState)
-  --M.collision2 gameState kbd'
+  --M.collision2 gameState
   --print (contenu)
   --print (gameState)
 

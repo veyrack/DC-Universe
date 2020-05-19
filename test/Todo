@@ -2,6 +2,7 @@
 
 -> Porte ouverte/ferme : Parfois ne s'ouvre ou se ferme qu'après plusieurs appel à la touche E
     -> Problème du keyboard  (loop récupère très vite la même touche) d'après le prof (Il a eu le même problème)
+    -> ejecter le perso s'il appuie sur la porte en même temps qu'il est dessus
 
 V-> Si le perso va vraiment vite sur la sortie, la detection de la sortie n'a pas lieu
     soluce: C'était une question d'ordre dans le GameState

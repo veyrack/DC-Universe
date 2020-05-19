@@ -297,7 +297,7 @@ actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=
     in auxActionLevier clotures where
       auxActionLevier [] = gs
       auxActionLevier clotures = auxActionLevier2 clotures levierCoord (Coord 0 0) (maxBound::CInt) where
-        auxActionLevier2 [] _ (Coord x y) _= openEntity gs "ClotureElectrique NS Ouvert" x y
+        auxActionLevier2 [] (Coord lx ly) (Coord x y) _= openEntity (openEntity gs "ClotureElectrique NS Ouvert" x y) "Levier Ferme" lx ly
         auxActionLevier2 (x:xs) levierCoord coord value | Model.distance levierCoord x < value = auxActionLevier2 xs levierCoord x (Model.distance levierCoord x)
                                                         | otherwise = auxActionLevier2 xs levierCoord coord value
 

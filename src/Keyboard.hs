@@ -15,22 +15,23 @@ createKeyboard :: Keyboard
 createKeyboard = S.empty
 
 
- -- https://gamedev.stackexchange.com/questions/75344/sdl2-ignoring-repeated-key-input-until-key-is-released
-
-handleEvent :: Event -> Keyboard -> Keyboard
-handleEvent event kbd =
+newhandleEvent :: Event -> Keyboard -> Keyboard
+newhandleEvent event kbd =
   case eventPayload event of
-    KeyboardEvent keyboardEvent ->
-      if keyboardEventKeyMotion keyboardEvent == Pressed
-      then S.insert (keysymKeycode (keyboardEventKeysym keyboardEvent)) kbd
-      else if keyboardEventKeyMotion keyboardEvent == Released
-           then S.delete (keysymKeycode (keyboardEventKeysym keyboardEvent)) kbd
-           else kbd
+    KeyboardEvent keyboardEvent -> handlekeyEvents keyboardEvent kbd
     _ -> kbd
+
+handlekeyEvents :: KeyboardEventData -> Keyboard -> Keyboard
+handlekeyEvents keyboardEvent kbd       | (keyboardEventKeyMotion keyboardEvent == Pressed) = S.insert (keysymKeycode (keyboardEventKeysym keyboardEvent)) kbd
+                                        | (keyboardEventKeyMotion keyboardEvent == Released) = S.delete (keysymKeycode (keyboardEventKeysym keyboardEvent)) kbd
+                                        | otherwise = kbd
+
 
 -- | prise en compte des événements SDL2 pour mettre à jour l'état du clavier
 handleEvents :: [Event] -> Keyboard -> Keyboard
-handleEvents events kbd = foldl' (flip handleEvent) kbd events
+handleEvents events kbd | (keypressed KeycodeE kbd) = foldl' (flip newhandleEvent) (S.filter (\x -> x /= KeycodeE) kbd) events
+                        | otherwise = foldl' (flip newhandleEvent) kbd events
+
 
 -- | quelques noms de *keycode*
 keycodeName :: Keycode -> Char
