@@ -8,5 +8,5 @@ x               x   E    k                   x
 x                xxxxxxxx                    x
 xpppp ppppxxxxxxxxxxxxxxxxxwxwxwxxwxx        x
 x         |          x              x        x
-x    S    x          |              x        x
+x S       x          |              x        x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

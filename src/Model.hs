@@ -294,15 +294,6 @@ actionClotureElectrique gs@(GameState _ _ _ (Perso px py _ _ _) _ _) directionCl
   | directionCloture=="NS" = let (x,y) = (isitanEntityFlex gs "ClotureElectrique NS Ouvert" px py) in checkProjection $ changePv gs (-20)
   | directionCloture== "EO" = let (x,y) = (isitanEntityFlex gs "ClotureElectrique EO Ouvert" px py) in checkProjection $ changePv gs (-20)
 
-actionLevier:: GameState -> Coord -> GameState
-actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=  
-  let clotures = (getCoordonneesObjectMap carte (Just (ClotureElectrique NS Ouvert))) 
-    in auxActionLevier clotures where
-      auxActionLevier [] = gs
-      auxActionLevier clotures = auxActionLevier2 clotures levierCoord (Coord 0 0) (maxBound::CInt) where
-        auxActionLevier2 [] (Coord lx ly) (Coord x y) _= openEntity (openEntity gs "ClotureElectrique NS Ouvert" x y) "Levier Ferme" lx ly
-        auxActionLevier2 (x:xs) levierCoord coord value | Model.distance levierCoord x < value = auxActionLevier2 xs levierCoord x (Model.distance levierCoord x)
-                                                        | otherwise = auxActionLevier2 xs levierCoord coord value
 
 --Fonction de levier
 testLevier :: GameState -> GameState
@@ -311,6 +302,24 @@ testLevier gs@(GameState _ _ _ (Perso px py _ _ _) _ _) =
     in if (a,b) /= ((-1),(-1)) 
         then (actionLevier gs (Coord a b))
           else gs
+
+
+actionLevier:: GameState -> Coord -> GameState
+actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=  
+  let clotures = (getCoordonneesObjectMap carte (Just (ClotureElectrique NS Ouvert)))++(getCoordonneesObjectMap carte (Just (ClotureElectrique EO Ouvert)))
+    in if (length clotures> 0) then auxActionLevier2 gs clotures levierCoord (Coord 0 0) (maxBound::CInt) "" else gs
+
+
+
+auxActionLevier2:: GameState -> [Coord] -> Coord -> Coord-> CInt -> String -> GameState
+auxActionLevier2 gs [] levierCoord coordObjet _ direction= openLevier gs direction levierCoord coordObjet
+auxActionLevier2 gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) (x:xs) levierCoord coord value direction | Model.distance levierCoord x < value = let (Coord a b) = x in auxActionLevier2 gs xs levierCoord x (Model.distance levierCoord x) (if (objectOnPosition carte a b)=="ClotureElectrique NS Ouvert" then "NS" else "EO")
+                                                                                                        | otherwise = auxActionLevier2 gs xs levierCoord coord value direction
+
+
+openLevier:: GameState -> String ->Coord -> Coord -> GameState
+openLevier gs directionCloture (Coord lx ly) (Coord x y) | directionCloture=="NS" = openEntity (openEntity gs "ClotureElectrique NS Ouvert" x y) "Levier Ferme" lx ly
+                                                         | directionCloture=="EO" = openEntity (openEntity gs "ClotureElectrique EO Ouvert" x y) "Levier Ferme" lx ly
 
 distance :: Coord -> Coord -> CInt
 distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
