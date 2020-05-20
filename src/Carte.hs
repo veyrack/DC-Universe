@@ -137,6 +137,8 @@ objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
                                                 Just (Porte NS Ouvert) -> "Porte NS"
                                                 Just (ClotureElectrique NS Ouvert) -> "ClotureElectrique NS Ouvert"
                                                 Just (ClotureElectrique NS Ferme) -> "ClotureElectrique NS Ferme"
+                                                Just (ClotureElectrique EO Ouvert) -> "ClotureElectrique EO Ouvert"
+                                                Just (ClotureElectrique EO Ferme) -> "ClotureElectrique EO Ferme"
                                                 Just Entree -> "Entree"
                                                 Just Sortie -> "Sortie"
                                                 Just Zombie -> "Zombie"
@@ -157,6 +159,8 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just (Porte EO Ouvert) -> False
                                                 Just (ClotureElectrique NS Ouvert) -> False
                                                 Just (ClotureElectrique NS Ferme) -> False
+                                                Just (ClotureElectrique EO Ouvert) -> False
+                                                Just (ClotureElectrique EO Ferme) -> False
                                                 Just Entree -> False
                                                 Just Sortie -> False
                                                 Just Zombie -> True
@@ -190,6 +194,8 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just (Porte EO Ouvert) -> False
                                                                     Just (ClotureElectrique NS Ouvert) -> False
                                                                     Just (ClotureElectrique NS Ferme) -> False
+                                                                    Just (ClotureElectrique EO Ouvert) -> False
+                                                                    Just (ClotureElectrique EO Ferme) -> False
                                                                     Just Entree -> False
                                                                     Just Sortie -> False
                                                                     Just Zombie -> True
@@ -249,6 +255,8 @@ getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
                          | entity == "Pique Ferme" = Pique Ouvert
                          | entity == "ClotureElectrique NS Ouvert" = ClotureElectrique NS Ferme
                          | entity == "ClotureElectrique NS Ferme" = ClotureElectrique NS Ouvert
+                         | entity == "ClotureElectrique EO Ouvert" = ClotureElectrique EO Ferme
+                         | entity == "ClotureElectrique EO Ferme" = ClotureElectrique EO Ouvert
                          | entity == "Levier Ouvert" = Levier Ferme
                          | entity == "Levier Ferme" = Levier Ouvert
                          | otherwise = Vide 

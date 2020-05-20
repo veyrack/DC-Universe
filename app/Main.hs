@@ -221,6 +221,21 @@ loadClotureElectriqueFermeNS rdr path tmap smap = do
   let smap' = SM.addSprite (SpriteId ("ClotureElectriqueFermeNS")) sprite smap
   return (tmap', smap')
 
+--charge les cloture electrique
+loadClotureElectriqueOuvertEO:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadClotureElectriqueOuvertEO rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("ClotureElectriqueOuvertEO")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("ClotureElectriqueOuvertEO")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("ClotureElectriqueOuvertEO")) sprite smap
+  return (tmap', smap')
+
+loadClotureElectriqueFermeEO:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadClotureElectriqueFermeEO rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("ClotureElectriqueFermeEO")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("ClotureElectriqueFermeEO")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("ClotureElectriqueFermeEO")) sprite smap
+  return (tmap', smap')
+
 loadLevierOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
 loadLevierOuvert rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("levierOuvert")) tmap
@@ -251,6 +266,8 @@ displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displayPiqueFerme renderer tmap smap carte transx trany --display pique visible
   displayClotureElectriqueOuvertNS renderer tmap smap carte transx trany --display Cloture Electrique allumer
   displayClotureElectriqueFermeNS renderer tmap smap carte transx trany --display Cloture Electrique éteint
+  displayClotureElectriqueOuvertEO renderer tmap smap carte transx trany --display Cloture Electrique allumer
+  displayClotureElectriqueFermeEO renderer tmap smap carte transx trany --display Cloture Electrique éteint
   displayLevierOuvert renderer tmap smap carte transx trany --display du levier ON
   displayLevierFerme renderer tmap smap carte transx trany --display du levier Off
   return ()
@@ -358,6 +375,24 @@ displayClotureElectriqueFermeNS renderer tmap smap carte transx transy= do
                               S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("ClotureElectriqueFermeNS")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
+displayClotureElectriqueOuvertEO :: Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayClotureElectriqueOuvertEO renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (ClotureElectrique EO Ouvert) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("ClotureElectriqueOuvertEO")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
+displayClotureElectriqueFermeEO :: Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
+displayClotureElectriqueFermeEO renderer tmap smap carte transx transy= do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (ClotureElectrique EO Ferme) )) carte
+  test mylist where
+    test [] = return ()
+    test ((Coord x y):as) = do 
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("ClotureElectriqueFermeEO")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              test as
+
 displaySortie::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
 displaySortie renderer tmap smap carte transx transy= do
   let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just Sortie )) carte
@@ -437,6 +472,8 @@ chargementRessources renderer= do
   --charge les clotures electrique
   (tmap, smap) <- loadClotureElectriqueOuvertNS renderer "assets/ClotureElectrique/ClotureElectriqueOuvertNS.png" tmap smap
   (tmap, smap) <- loadClotureElectriqueFermeNS renderer "assets/ClotureElectrique/ClotureElectriqueFermeNS.png" tmap smap
+  (tmap, smap) <- loadClotureElectriqueOuvertEO renderer "assets/ClotureElectrique/ClotureElectriqueOuvertEO.png" tmap smap
+  (tmap, smap) <- loadClotureElectriqueFermeEO renderer "assets/ClotureElectrique/ClotureElectriqueFermeEO.png" tmap smap
   --Chargement des leviers
   (tmap, smap) <- loadLevierOuvert renderer "assets/Levier/leverOn.png" tmap smap
   (tmap, smap) <- loadLevierFerme renderer "assets/Levier/leverOff.png" tmap smap
