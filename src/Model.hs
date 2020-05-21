@@ -313,19 +313,14 @@ actionLevier gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) levierCoord=
 
 auxActionLevier2:: GameState -> [Coord] -> Coord -> Coord-> CInt -> String -> GameState
 auxActionLevier2 gs [] levierCoord coordObjet _ direction= openLevier gs direction levierCoord coordObjet
-auxActionLevier2 gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) (x:xs) levierCoord coord value direction | Model.distance levierCoord x < value = let (Coord a b) = x in auxActionLevier2 gs xs levierCoord x (Model.distance levierCoord x) (if (objectOnPosition carte a b)=="ClotureElectrique NS Ouvert" then "NS" else "EO")
+auxActionLevier2 gs@(GameState _ _ _ _ (Terrain  _ _ carte) _) (x:xs) levierCoord coord value direction | C.distance levierCoord x < value = let (Coord a b) = x in auxActionLevier2 gs xs levierCoord x (C.distance levierCoord x) (if (objectOnPosition carte a b)=="ClotureElectrique NS Ouvert" then "NS" else "EO")
                                                                                                         | otherwise = auxActionLevier2 gs xs levierCoord coord value direction
 
 
 openLevier:: GameState -> String ->Coord -> Coord -> GameState
 openLevier gs directionCloture (Coord lx ly) (Coord x y) | directionCloture=="NS" = openEntity (openEntity gs "ClotureElectrique NS Ouvert" x y) "Levier Ferme" lx ly
                                                          | directionCloture=="EO" = openEntity (openEntity gs "ClotureElectrique EO Ouvert" x y) "Levier Ferme" lx ly
-
-distance :: Coord -> Coord -> CInt
-distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
-                                          where
-                                            x'= fromIntegral (x1 - x2)
-                                            y'= fromIntegral (y1 - y2) 
+ 
 
 -- Permet de donné l'effet de vibration lorsque le perso touche des piques
 checkProjection :: GameState -> GameState

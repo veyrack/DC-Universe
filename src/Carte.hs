@@ -275,3 +275,8 @@ checkCaseVide :: Coord -> (Map Coord Case) -> Bool
 checkCaseVide coord carte  = (M.lookup coord carte) == Nothing
 
 
+distance :: Coord -> Coord -> CInt
+distance (Coord x1 y1) (Coord x2 y2) = round (sqrt (x'*x'+y'*y'))
+                                          where
+                                            x'= fromIntegral (x1 - x2)
+                                            y'= fromIntegral (y1 - y2)
