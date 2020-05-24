@@ -49,6 +49,9 @@ import qualified Exception as E
 import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
 import qualified SDL.Video.Renderer as R
 
+import qualified SDL.Font as F
+
+
 
 --Screen size
 hauteurWin :: CInt
@@ -249,6 +252,14 @@ loadLevierFerme rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("levierFerme")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("levierFerme")) sprite smap
   return (tmap', smap')
+
+loadPotion :: Renderer -> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadPotion rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("potion")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("potion")) (S.mkArea 0 0 (tailleBloc*2) (tailleBloc*2)) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("potion")) sprite smap
+  return (tmap', smap')
+
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -425,11 +436,31 @@ displayDebug renderer = do
   rendererDrawColor renderer $= color
   let rectangle = drawRect renderer (Just (S.mkArea (persoX) (persoY+25) 25 20)) in rectangle
 
-displayVie :: Renderer-> CInt -> IO ()
-displayVie renderer vie= do
+displayVie :: Renderer -> CInt -> IO ()
+displayVie renderer vie = do
+  let color = V4 0 0 0 0
+  rendererDrawColor renderer $= color
   let life= (vie*40) `div` 100
   let rectangle = drawRect renderer (Just (S.mkArea (persoX-10) persoY 40 10)) in rectangle
   let fillrect = fillRect renderer (Just (S.mkArea (persoX-10) persoY life 10)) in fillrect
+
+
+displayPotion :: Renderer -> TextureMap -> SpriteMap -> Map M.Item CInt -> IO ()
+displayPotion renderer tmap smap inv = 
+  let Just n = inv !? M.Potion in
+    if n == 0
+      then return()
+      else
+        do
+          let color = V4 255 255 255 0
+          rendererDrawColor renderer $= color
+          let rectangle = drawRect renderer (Just (S.mkArea 29 19 44 44)) in rectangle
+          F.initialize
+          font <- F.load "assets/OpenSans-Regular.ttf" 12
+          let nombre = F.solid font color "YOOO" in nombre
+          F.quit
+--           renderer "test" (Just (S.mkArea 29 19 44 44))  in nombre
+          let potion = S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("potion")) smap) (30) (20)) in potion
 --------------------------------------
 
 main :: IO ()
@@ -483,8 +514,10 @@ chargementRessources renderer= do
   (tmap', smap') <- loadTextTitle renderer "assets/title.png" tmap' smap'
   --chargement texte ecran win
   (tmap', smap') <- loadTextWin renderer "assets/youwin2.png" tmap' smap'
-  --chargemen texte ecran loose
+  --chargement texte ecran loose
   (tmap', smap') <- loadTextLose renderer "assets/youlose.png" tmap' smap'
+  --chargement potion
+  (tmap', smap') <- loadPotion renderer "assets/potion.png" tmap' smap'
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
@@ -507,7 +540,9 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
 
   --Représente la vie du personnage
   displayVie renderer vie
-
+  
+  --affiche les potions
+  displayPotion renderer tmap smap inv
 
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
