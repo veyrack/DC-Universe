@@ -455,10 +455,14 @@ displayPotion renderer tmap smap inv =
           let color = V4 255 255 255 0
           rendererDrawColor renderer $= color
           let rectangle = drawRect renderer (Just (S.mkArea 29 19 44 44)) in rectangle
-          F.initialize
-          font <- F.load "assets/OpenSans-Regular.ttf" 12
-          let nombre = F.solid font color "YOOO" in nombre
-          F.quit
+          -- F.initialize
+          -- font <- F.load "assets/OpenSans-Regular.ttf" 60
+          -- let nombre = F.solid font color "YOOO" in nombre
+          -- -- w <- getWindow
+          -- -- s <- getWindowSurface w
+          -- -- updateWindowSurface s
+          
+          -- F.quit
 --           renderer "test" (Just (S.mkArea 29 19 44 44))  in nombre
           let potion = S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("potion")) smap) (30) (20)) in potion
 --------------------------------------
