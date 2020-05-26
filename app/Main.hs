@@ -49,6 +49,9 @@ import qualified Exception as E
 import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
 import qualified SDL.Video.Renderer as R
 
+--import qualified SDL.Font as F
+
+
 --800 600  -- 1200 800 --full screen windowed
 --Screen size
 hauteurWin :: CInt
@@ -57,23 +60,6 @@ hauteurWin = 600
 largeurWin:: CInt
 largeurWin = 800
 
---size of the dungeon
-{-
-hauteurDj :: CInt
-hauteurDj = 700
-
-largeurDj:: CInt
-largeurDj = 700
-
-
---Nombre de blocs en hauteur
-blocHauteur::CInt
-blocHauteur = hauteurDj `div` 20 --20pixel pour un bloc
-
---Nombre de blocs en largeur
-blocLargeur::CInt
-blocLargeur = largeurDj `div` 20 --20pixel pour un bloc
--}
 -- |Position du personnage
 persoX::CInt
 persoX = ((largeurWin `div` 2)-50)
@@ -279,6 +265,14 @@ loadAura rdr path tmap smap = do
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("aura")) (S.mkArea 0 0 tailleAura tailleAura) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("aura")) sprite smap
   return (tmap', smap')
+  
+loadPotion :: Renderer -> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadPotion rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("potion")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("potion")) (S.mkArea 0 0 (tailleBloc*2) (tailleBloc*2)) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("potion")) sprite smap
+  return (tmap', smap')
+
 -----------------------A la creation je place mes blocs ----------------------------------
 
 --Affiche tous les blocs
@@ -455,8 +449,10 @@ displayDebug renderer = do
   rendererDrawColor renderer $= color
   let rectangle = drawRect renderer (Just (S.mkArea (persoX) (persoY+25) 25 20)) in rectangle
 
-displayVie :: Renderer-> CInt -> IO ()
-displayVie renderer vie= do
+displayVie :: Renderer -> CInt -> IO ()
+displayVie renderer vie = do
+  let color = V4 0 0 0 0
+  rendererDrawColor renderer $= color
   let life= (vie*40) `div` 100
   let rectangle = drawRect renderer (Just (S.mkArea (persoX-10) persoY 40 10)) in rectangle
   let fillrect = fillRect renderer (Just (S.mkArea (persoX-10) persoY life 10)) in fillrect
@@ -477,6 +473,27 @@ displayAura::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> IO ()
 displayAura renderer tmap smap transx transy= do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("aura")) smap) posFogX posFogY)
 
+
+displayPotion :: Renderer -> TextureMap -> SpriteMap -> Map M.Item CInt -> IO ()
+displayPotion renderer tmap smap inv = 
+  let Just n = inv !? M.Potion in
+    if n == 0
+      then return()
+      else
+        do
+          let color = V4 255 255 255 0
+          rendererDrawColor renderer $= color
+          let rectangle = drawRect renderer (Just (S.mkArea 29 19 44 44)) in rectangle
+          -- F.initialize
+          -- font <- F.load "assets/OpenSans-Regular.ttf" 60
+          -- let nombre = F.solid font color "YOOO" in nombre
+          -- -- w <- getWindow
+          -- -- s <- getWindowSurface w
+          -- -- updateWindowSurface s
+          
+          -- F.quit
+--           renderer "test" (Just (S.mkArea 29 19 44 44))  in nombre
+          let potion = S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("potion")) smap) (30) (20)) in potion
 --------------------------------------
 
 main :: IO ()
@@ -494,15 +511,15 @@ chargementRessources renderer= do
   --Generation d'un terrain à partir d'un fichier
   terrain <-terrainGenerator "CarteGenerator/carte.txt"
   let (Terrain ht lg contenu)= terrain
-  --print (terrain)
+
   --Test si la map est valide
   if (not $ carteValide contenu)
     then throw InvalidMapException else putStrLn "Carte : Pass"
     
-  -- chargement du sol
+  --chargement du sol
   (tmap, smap) <- loadSol renderer "assets/sol.png" TM.createTextureMap SM.createSpriteMap
   --chargement des murs
-  (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap--Ici, il faudra une fonction pour optenir le nombre de mur dans la map
+  (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap
   --chargement des coffres
   (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap
   (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap
@@ -533,8 +550,10 @@ chargementRessources renderer= do
   (tmap', smap') <- loadTextTitle renderer "assets/title.png" tmap' smap'
   --chargement texte ecran win
   (tmap', smap') <- loadTextWin renderer "assets/youwin2.png" tmap' smap'
-  --chargemen texte ecran loose
+  --chargement texte ecran loose
   (tmap', smap') <- loadTextLose renderer "assets/youlose.png" tmap' smap'
+  --chargement potion
+  (tmap', smap') <- loadPotion renderer "assets/potion.png" tmap' smap'
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
@@ -558,27 +577,27 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --Représente la vie du personnage
   displayVie renderer vie
 
-
   --- display perso 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
-  print (persoX,";", persoY)
+
   --Display Brouillard de guerre
   displayAura renderer tmap smap tx ty
   displayFog renderer tmap smap 0 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty))
-  --Test l'état du jeu
+
+   --affiche les potions
+  displayPotion renderer tmap smap inv
+  
+  --Test l'état du jeu : Win or Loose
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
   
   -- |Display debug
   displayDebug renderer
-  --print (M.testSortie gameState)
   --M.collision2 gameState
-  --print (contenu)
-  --print (gameState)
 
---Background Color
+--Background Color : Ne pas modifier
   let color = V4 0 0 0 0
   rendererDrawColor renderer $= color
 
@@ -593,7 +612,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   --putStrLn $ "Frame rate: " <> (show (1 / deltaTime)) <> " (frame/s)"
   --- update du game state----
 
-  --Deplacement mob = mise a jour de leurs positions
+  --Deplacement mob = mise a jour de leurs positions : Temporaire
   newgs <- if ((tour `mod` 10)==0) then (M.action gameState) else return gameState
 
   let gameState'' = M.gameStep (newgs {M.tour = tour+1}) kbd' deltaTime
@@ -615,7 +634,7 @@ title renderer kbd tmap smap gs = do
                                 100
                                 100)
   
-  if ((K.keypressed KeycodeReturn kbd')) 
+  if (K.keypressed KeycodeReturn kbd') 
     then (gameLoop 60 renderer tmap smap kbd' gs)
     else return () 
 
@@ -637,7 +656,7 @@ youwin renderer kbd tmap smap gs = do
                                 100
                                 100)                
   
-  if ((K.keypressed KeycodeR kbd')) 
+  if (K.keypressed KeycodeR kbd') 
     then do
       (keyb,tmap',smap', gameState) <- chargementRessources renderer 
       (gameLoop 60 renderer tmap' smap' keyb gameState)

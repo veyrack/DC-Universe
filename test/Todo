@@ -26,6 +26,7 @@ V-> Generateur de labyrinthes /!En cours!\
     V->action avec la touche "E" + display coffre ouvert /!\
     ->Lors de l'ouverture, gain : gold, stuff, key,potion de vie
         V-> Gain de vie
+        V -> Potion de vie
 
 V-> Ouverture porte : action avec la touche "E" + display porte ouverte puis se ferme /!\
     V-> Ferme porte
@@ -37,6 +38,7 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
 
 ->Menu du jeu
     V->play
+     -> Adapter les images et textes des menus en fonction de la resolution de l'écran
     ->options
     ->credits
 
@@ -54,8 +56,16 @@ V->Entree du labyrinthe: positionner camera et joueur sur l'entree
     -> esclalier: Passage au labyrinthe suivant.
 
 -> Etat de jeu:
-    -> Si perso perds de la vie: fin du jeu (prérequis : Vie du perso)
-    ->Si perso tombe dans un piège: perte de 80% de la vie (prérequis : Vie du perso)
+    V-> Si perso perds de la vie: fin du jeu (prérequis : Vie du perso)
+    V->Si perso tombe dans un piège: perte de de vie (prérequis : Vie du perso)
+
+-> Inventaire:
+    -> affichage de texte pour le nombre de potions
+
+-> Environnement et extensions
+    V-> Brouillard de Guerre
+     -> Trésor pour quitter le donjon
+     -> Fontaine de vie (Rend toute la vie du personnage, activable une seul fois)
 
 -----Invariants-------
 -> Generateur de labyrinthes
