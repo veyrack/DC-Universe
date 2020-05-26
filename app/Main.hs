@@ -49,10 +49,10 @@ import qualified Exception as E
 import SDL.Video.Renderer (Renderer, Texture, Rectangle (..))
 import qualified SDL.Video.Renderer as R
 
-
+--800 600  -- 1200 800 --full screen windowed
 --Screen size
 hauteurWin :: CInt
-hauteurWin = 700
+hauteurWin = 600
 
 largeurWin:: CInt
 largeurWin = 800
@@ -74,15 +74,30 @@ blocHauteur = hauteurDj `div` 20 --20pixel pour un bloc
 blocLargeur::CInt
 blocLargeur = largeurDj `div` 20 --20pixel pour un bloc
 -}
---Position du personnage
+-- |Position du personnage
 persoX::CInt
-persoX = 350
+persoX = ((largeurWin `div` 2)-50)
 
 persoY::CInt
-persoY = 350
+persoY = (hauteurWin `div` 2)
 
+-- |Taille d'un bloc
 tailleBloc:: CInt
 tailleBloc = 20
+
+-- |Constantes du brouillard de guerre
+
+--Positions pour modifier facilement le brouillard de guerre :  Pour une aura correct, on recommande : tailleBloc*4 <= Aura
+tailleAura::CInt
+tailleAura = (tailleBloc*10)
+
+--Poisition du sprite fog -> Ne pas modifier
+posFogX :: CInt
+posFogX = (persoX-(tailleAura `div` 2)+10)
+
+posFogY :: CInt
+posFogY = (persoY-(tailleAura `div` 2)+30)
+
 
 --Renvoie la fenêtre de l'écran
 getWindow:: MonadIO m => m Window
@@ -248,6 +263,21 @@ loadLevierFerme rdr path tmap smap = do
   tmap' <- TM.loadTexture rdr path (TextureId ("levierFerme")) tmap
   let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("levierFerme")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
   let smap' = SM.addSprite (SpriteId ("levierFerme")) sprite smap
+  return (tmap', smap')
+
+loadFog:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadFog rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("fog")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("fog")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("fog")) sprite smap
+  return (tmap', smap')
+
+--La lumière autour du perso qui permet de voir le personnage qui se déplace dans la pénombre
+loadAura:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
+loadAura rdr path tmap smap = do
+  tmap' <- TM.loadTexture rdr path (TextureId ("aura")) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("aura")) (S.mkArea 0 0 tailleAura tailleAura) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId ("aura")) sprite smap
   return (tmap', smap')
 -----------------------A la creation je place mes blocs ----------------------------------
 
@@ -430,6 +460,23 @@ displayVie renderer vie= do
   let life= (vie*40) `div` 100
   let rectangle = drawRect renderer (Just (S.mkArea (persoX-10) persoY 40 10)) in rectangle
   let fillrect = fillRect renderer (Just (S.mkArea (persoX-10) persoY life 10)) in fillrect
+
+displayFog :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
+displayFog renderer tmap smap posx posy ht lg transx transy= do
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("fog")) smap) (posx) (posy))
+  print (persoX, "--", persoY)
+  displayFogAux renderer tmap smap posx posy ht lg transx transy
+
+displayFogAux :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
+displayFogAux renderer tmap smap posx posy ht lg transx transy | ((posFogX-(tailleBloc*2))< posx) && (posx<(posFogX+tailleAura)-tailleBloc) && (posFogY<posy) && (posy<(posFogY+tailleAura)-tailleBloc) = (displayFogAux renderer tmap smap (posx+tailleBloc) posy ht lg transx transy)
+                                                               | posx <= largeurWin = (displayFog renderer tmap smap (posx+tailleBloc) posy  ht lg transx transy)
+                                                               | posy <= hauteurWin = (displayFog renderer tmap smap 0 (posy+tailleBloc)  ht lg transx transy)
+                                                               | otherwise = return ()
+
+displayAura::Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> IO ()
+displayAura renderer tmap smap transx transy= do
+  S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("aura")) smap) posFogX posFogY)
+
 --------------------------------------
 
 main :: IO ()
@@ -477,6 +524,9 @@ chargementRessources renderer= do
   --Chargement des leviers
   (tmap, smap) <- loadLevierOuvert renderer "assets/Levier/leverOn.png" tmap smap
   (tmap, smap) <- loadLevierFerme renderer "assets/Levier/leverOff.png" tmap smap
+  --chargement pour le brouillard de guerre
+  (tmap, smap) <- loadAura renderer "assets/Fog/aura.png" tmap smap
+  (tmap, smap) <- loadFog renderer "assets/Fog/fog.png" tmap smap
   -- chargement du personnage
   (tmap', smap') <- loadPerso renderer "assets/perso.png" tmap smap
   --chargement texte ecran titre
@@ -513,7 +563,10 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId "perso") smap)
                                  persoX
                                 persoY)
-
+  print (persoX,";", persoY)
+  --Display Brouillard de guerre
+  displayAura renderer tmap smap tx ty
+  displayFog renderer tmap smap 0 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty))
   --Test l'état du jeu
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()
   if (vie == 0) then youlose renderer kbd tmap smap gameState else return ()
