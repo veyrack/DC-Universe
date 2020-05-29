@@ -35,6 +35,7 @@ data Perso = Perso { persoX :: CInt
                     deriving (Show,Eq)
 
 data Item = Potion
+            | Masque
             deriving (Show,Eq,Ord)
 
 data EtatJeu = Gagner 
@@ -243,10 +244,28 @@ openChest :: GameState -> String -> CInt -> CInt -> GameState
 openChest gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in looting (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))})
                                                                  -- | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
                                                                  | otherwise = gs
+-- |Fonction d'action des tresor (identique aux coffres)
+testTresor :: GameState -> GameState
+testTresor gs@(GameState _ _ _ (Perso px py d _ _) (Terrain  _ _ c) _) = let (a,b) = (isitanEntity gs "Tresor Ferme" px py) in 
+                                                                        if (a,b) /= ((-1),(-1)) 
+                                                                          then (openTresor gs "Tresor Ferme" a b) 
+                                                                          else gs
+
+testTresor_pre :: GameState -> Bool
+testTresor_pre gs@(GameState _ _ _ _ (Terrain  _ _ c) _) = testMap c "Tresor Ferme"
+
+openTresor :: GameState -> String -> CInt -> CInt -> GameState
+openTresor gs@(GameState _ _ _ _ (Terrain  ht lg c) _) entity a b | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in lootingTreasure (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))})
+                                                                 -- | objectOnPosition c a b == entity =  let f = C.getCaseFromString entity in changePv (gs {terrain =(Terrain ht lg (updateValueMap c (Coord a b) f ))}) 20
+                                                                 | otherwise = gs
 
 --Permet de récuperer un objet présent dans un coffre (Pour l'instant une potion seulement)
 looting :: GameState -> GameState
 looting gs@(GameState _ _ _ (Perso px py d v inv) _ _) = gs {perso = (Perso px py d v (adjust (+ 1) Potion inv))}
+
+--Permet de récuperer le tresor permettant de sortir
+lootingTreasure :: GameState -> GameState
+lootingTreasure gs@(GameState _ _ _ (Perso px py d v inv) _ _) = gs {perso = (Perso px py d v (adjust (+ 1) Masque inv))}
 
 -- |Fonctions d'inventaire
 
@@ -257,8 +276,8 @@ usePotion gs@(GameState _ _ _ (Perso px py d v inv) _ _) = if inv ! Potion == 0
 
 -- |Fonction de Sortie
 testSortie :: GameState -> Bool
-testSortie gs@(GameState _ _ _ (Perso px py _ _ _) _ _) = 
-  let (a,b) =(isitanEntityFlex gs "Sortie" px py) in (a,b) /= ((-1),(-1)) 
+testSortie gs@(GameState _ _ _ (Perso px py _ _ inv) _ _) = 
+  let (a,b) =(isitanEntityFlex gs "Sortie" px py) in (a,b) /= ((-1),(-1)) && (inv ! Masque) == 1
 
 testSortie_pre :: GameState -> Bool
 testSortie_pre gs@(GameState _ _ _ _ (Terrain  _ _ c) _) = testMap c "Sortie"
@@ -428,7 +447,7 @@ collision2 gs@(GameState (Translation tx ty) _ sp (Perso px py d _ inv) (Terrain
 gameStep :: RealFrac a => GameState -> Keyboard -> a -> GameState
 gameStep gstate kbd deltaTime | (testSortie gstate) = gstate {etatjeu = Gagner}
                               | (tombeDansPiege gstate)= (testPiege gstate)
-                              | (K.keypressed KeycodeE kbd) = (testLevier (testChest (testDoor gstate)))
+                              | (K.keypressed KeycodeE kbd) = (testLevier (testChest (testTresor (testDoor gstate))))
                               | (K.keypressed KeycodeA kbd) = (usePotion gstate)
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeZ kbd) && (K.keypressed KeycodeQ kbd) = gstate
                               | (K.keypressed KeycodeD kbd) && (K.keypressed KeycodeS kbd) && (K.keypressed KeycodeQ kbd) = gstate

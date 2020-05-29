@@ -121,19 +121,19 @@ loadMurs rdr path tmap smap = do
 
 
 --Charge les coffres
-loadCoffreFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
-loadCoffreFerme rdr path tmap smap = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("coffreF")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreF")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("coffreF")) sprite smap
+loadCoffreFerme:: Renderer-> FilePath -> TextureMap -> SpriteMap -> String -> IO (TextureMap, SpriteMap) 
+loadCoffreFerme rdr path tmap smap name = do
+  tmap' <- TM.loadTexture rdr path (TextureId name) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId name) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId name) sprite smap
   return (tmap', smap')
   
 --Charge les coffres
-loadCoffreOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
-loadCoffreOuvert rdr path tmap smap = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("coffreO")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("coffreO")) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("coffreO")) sprite smap
+loadCoffreOuvert:: Renderer-> FilePath -> TextureMap -> SpriteMap -> String -> IO (TextureMap, SpriteMap) 
+loadCoffreOuvert rdr path tmap smap name = do
+  tmap' <- TM.loadTexture rdr path (TextureId name) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId name) (S.mkArea 0 0 tailleBloc tailleBloc) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId name) sprite smap
   return (tmap', smap')
 
 --charge les portes ferme
@@ -266,11 +266,11 @@ loadAura rdr path tmap smap = do
   let smap' = SM.addSprite (SpriteId ("aura")) sprite smap
   return (tmap', smap')
   
-loadPotion :: Renderer -> FilePath -> TextureMap -> SpriteMap -> IO (TextureMap, SpriteMap) 
-loadPotion rdr path tmap smap = do
-  tmap' <- TM.loadTexture rdr path (TextureId ("potion")) tmap
-  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId ("potion")) (S.mkArea 0 0 (tailleBloc*2) (tailleBloc*2)) --bloc de 20pixel
-  let smap' = SM.addSprite (SpriteId ("potion")) sprite smap
+loadItem :: Renderer -> FilePath -> TextureMap -> SpriteMap -> String -> IO (TextureMap, SpriteMap) 
+loadItem rdr path tmap smap name = do
+  tmap' <- TM.loadTexture rdr path (TextureId (name)) tmap
+  let sprite = S.defaultScale $ S.addImage S.createEmptySprite $ S.createImage (TextureId (name)) (S.mkArea 0 0 (tailleBloc*2) (tailleBloc*2)) --bloc de 20pixel
+  let smap' = SM.addSprite (SpriteId (name)) sprite smap
   return (tmap', smap')
 
 -----------------------A la creation je place mes blocs ----------------------------------
@@ -280,8 +280,10 @@ displayBackground:: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt ->
 displayBackground renderer tmap smap cpt ht lg transx trany carte= do
   displaySol renderer tmap smap 0 0 ht lg transx trany --display le sol
   displayMurs renderer tmap smap carte transx trany--display murs
-  displayCoffreOuvert renderer tmap smap carte transx trany--display coffres
-  displayCoffreFerme renderer tmap smap carte transx trany--display coffres
+  displayCoffreOuvert renderer tmap smap carte transx trany "CoffreO"--display coffres
+  displayCoffreFerme renderer tmap smap carte transx trany "CoffreF"--display coffres
+  displayCoffreOuvert renderer tmap smap carte transx trany "TresorO"--display tresor
+  displayCoffreFerme renderer tmap smap carte transx trany "TresorF"--display tresor
   displayPorteFerme renderer tmap smap carte transx trany --display des portes fermee
   displayPorteOuvert renderer tmap smap carte transx trany --display des portes ouvertes
   displayMob renderer tmap smap carte transx trany --display les ennemis
@@ -318,22 +320,22 @@ displayMurs renderer tmap smap carte transx transy= do
                               test as
 
 --Affiches les coffres
-displayCoffreFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
-displayCoffreFerme renderer tmap smap carte transx transy= do
-  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Coffre Ferme))) carte
+displayCoffreFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> String -> IO ()
+displayCoffreFerme renderer tmap smap carte transx transy name = do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (if name == "CoffreF" then Coffre Ferme else Tresor Ferme))) carte
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreF")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId name) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
                               
-displayCoffreOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
-displayCoffreOuvert renderer tmap smap carte transx transy= do
-  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (Coffre Ouvert))) carte
+displayCoffreOuvert::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> String -> IO ()
+displayCoffreOuvert renderer tmap smap carte transx transy name = do
+  let mylist = Map.keys $ filterWithKey (\k v -> (Just v)==(Just (if name == "CoffreO" then Coffre Ouvert else Tresor Ouvert))) carte
   test mylist where
     test [] = return ()
     test ((Coord x y):as) = do 
-                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("coffreO")) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
+                              S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId name) smap) ((x*tailleBloc)+transx) ((y*tailleBloc)+transy))
                               test as
 
 displayPorteFerme::Renderer->TextureMap -> SpriteMap -> Map Coord Case -> CInt -> CInt -> IO ()
@@ -460,7 +462,7 @@ displayVie renderer vie = do
 displayFog :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
 displayFog renderer tmap smap posx posy ht lg transx transy= do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("fog")) smap) (posx) (posy))
-  print (persoX, "--", persoY)
+  --print (persoX, "--", persoY)
   displayFogAux renderer tmap smap posx posy ht lg transx transy
 
 displayFogAux :: Renderer->TextureMap -> SpriteMap -> CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO ()
@@ -474,26 +476,32 @@ displayAura renderer tmap smap transx transy= do
   S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("aura")) smap) posFogX posFogY)
 
 
-displayPotion :: Renderer -> TextureMap -> SpriteMap -> Map M.Item CInt -> IO ()
-displayPotion renderer tmap smap inv = 
-  let Just n = inv !? M.Potion in
-    if n == 0
-      then return()
-      else
-        do
-          let color = V4 255 255 255 0
-          rendererDrawColor renderer $= color
-          let rectangle = drawRect renderer (Just (S.mkArea 29 19 44 44)) in rectangle
-          -- F.initialize
-          -- font <- F.load "assets/OpenSans-Regular.ttf" 60
-          -- let nombre = F.solid font color "YOOO" in nombre
-          -- -- w <- getWindow
-          -- -- s <- getWindowSurface w
-          -- -- updateWindowSurface s
-          
-          -- F.quit
---           renderer "test" (Just (S.mkArea 29 19 44 44))  in nombre
-          let potion = S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId ("potion")) smap) (30) (20)) in potion
+displayInv :: Renderer -> TextureMap -> SpriteMap -> Map M.Item CInt -> IO ()
+displayInv renderer tmap smap inv = do
+  let mylist = Map.keys $ Map.filter (> 0) inv
+  aux mylist 1 where
+    aux [] _ = return()
+    aux (i:is) decalage = do
+      let item = case i of
+                        M.Potion -> "potion"
+                        M.Masque -> "masque" 
+      let color = V4 255 255 255 0
+      rendererDrawColor renderer $= color
+      let rectangle = drawRect renderer (Just (S.mkArea (44*decalage) 19 44 44)) in rectangle
+      let prt = S.displaySprite renderer tmap (S.moveTo (SM.fetchSprite (SpriteId (item)) smap) (45*decalage) (20)) in prt
+      aux is (decalage+1)
+    
+
+
+-- F.initialize
+-- font <- F.load "assets/OpenSans-Regular.ttf" 60
+-- let nombre = F.solid font color "YOOO" in nombre
+-- -- w <- getWindow
+-- -- s <- getWindowSurface w
+-- -- updateWindowSurface s
+-- F.quit
+
+
 --------------------------------------
 
 main :: IO ()
@@ -521,8 +529,11 @@ chargementRessources renderer= do
   --chargement des murs
   (tmap,smap) <- loadMurs renderer "assets/murtest.png"  tmap smap
   --chargement des coffres
-  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap
-  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap
+  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap "CoffreO"
+  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap "CoffreF"
+  --chargement des tresor
+  (tmap, smap) <- loadCoffreOuvert renderer "assets/coffreAssets/chest_empty_open_anim_f2.png" tmap smap "TresorO"
+  (tmap, smap) <- loadCoffreFerme renderer "assets/coffre.png" tmap smap "TresorF"
   --chargement des portes
   (tmap, smap) <- loadPorteOuvert renderer "assets/porteouvert.png" tmap smap
   (tmap, smap) <- loadPorteFerme renderer "assets/porteferme.png" tmap smap
@@ -552,12 +563,13 @@ chargementRessources renderer= do
   (tmap', smap') <- loadTextWin renderer "assets/youwin2.png" tmap' smap'
   --chargement texte ecran loose
   (tmap', smap') <- loadTextLose renderer "assets/youlose.png" tmap' smap'
-  --chargement potion
-  (tmap', smap') <- loadPotion renderer "assets/potion.png" tmap' smap'
+  --chargement des items
+  (tmap', smap') <- loadItem renderer "assets/potion.png" tmap' smap' "potion"
+  (tmap', smap') <- loadItem renderer "assets/masque.png" tmap' smap' "masque"
 
   -- initialisation de l'état du jeu
   let (Coord coorda coordb)= C.getEntree contenu
-  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100 (fromList [(M.Potion,0)] )) terrain --px et py sont les coordonnées de la map placé sur l'écran
+  let gameState = M.initGameState (M.Translation (persoX - (coorda*tailleBloc)) ((persoY+25) - (coordb*tailleBloc))) (M.Perso persoX persoY M.North 100 (fromList [(M.Potion,0),(M.Masque,0)] )) terrain --px et py sont les coordonnées de la map placé sur l'écran
   
   -- initialisation de l'état du clavier
   let kbd = K.createKeyboard
@@ -587,7 +599,8 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   displayFog renderer tmap smap 0 0 (ht*tailleBloc) (lg*tailleBloc) (fromIntegral (tx)) (fromIntegral (ty))
 
    --affiche les potions
-  displayPotion renderer tmap smap inv
+  displayInv renderer tmap smap inv
+
   
   --Test l'état du jeu : Win or Loose
   if (etatjeu == M.Gagner) then youwin renderer kbd tmap smap gameState else return ()

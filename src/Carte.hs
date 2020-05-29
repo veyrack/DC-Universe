@@ -13,6 +13,7 @@ data Case = Vide
     | Porte Direction Statut --La porte est ouverte ou fermé
     | Mur
     | Coffre Statut
+    | Tresor Statut
     | Entree
     | Sortie
     | Zombie
@@ -48,6 +49,7 @@ createTheMap [] mymap x y lg= (mymap, y, lg)
 createTheMap (a:as) mymap x y lg | (a== '\n') && (as /= [])= createTheMap as mymap 0 (y+1) lg --lg bouge pas car ici c'est la condition du retour à la ligne
                                  | a=='x' = createTheMap as (M.insert (Coord x y) Mur mymap) (x+1) y (if lg< x then x else lg ) --Si on voit un mur
                                  | a=='c' = createTheMap as (M.insert (Coord x y) (Coffre Ferme) mymap) (x+1) y (if lg< x then x else lg ) --Si on voit un coffre
+                                 | a=='t' = createTheMap as (M.insert (Coord x y) (Tresor Ferme) mymap) (x+1) y (if lg< x then x else lg ) --Si on voit un tresor
                                  | a== '-' = createTheMap as (M.insert (Coord x y) (Porte NS Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== '|' = createTheMap as (M.insert (Coord x y) (Porte EO Ferme) mymap) (x+1) y (if lg< x then x else lg )
                                  | a== 'E' = createTheMap as (M.insert (Coord x y) (Entree) mymap) (x+1) y (if lg< x then x else lg )
@@ -131,6 +133,8 @@ objectOnPosition c x y = (case (M.lookup (Coord x y) c) of
                                                 Just Mur -> "Mur"
                                                 Just (Coffre Ouvert) -> "Coffre Ouvert"
                                                 Just (Coffre Ferme) -> "Coffre Ferme"
+                                                Just (Tresor Ouvert) -> "Tresor Ouvert"
+                                                Just (Tresor Ferme) -> "Tresor Ferme"
                                                 Just (Porte NS Ferme) -> "Porte NS"
                                                 Just (Porte EO Ferme) -> "Porte EO"
                                                 Just (Porte EO Ouvert) -> "Porte EO"
@@ -153,6 +157,8 @@ collision carte x y = (case (M.lookup (Coord x y) carte) of
                                                 Just Mur -> True
                                                 Just (Coffre Ouvert) -> True
                                                 Just (Coffre Ferme) -> True
+                                                Just (Tresor Ouvert) -> True
+                                                Just (Tresor Ferme) -> True
                                                 Just (Porte NS Ferme) -> True
                                                 Just (Porte NS Ouvert) -> False
                                                 Just (Porte EO Ferme) -> True
@@ -188,6 +194,8 @@ getCoordonneesObjectMap_pre carte object = (length carte) > 0 && (case object of
                                                                     Just Mur -> True
                                                                     Just (Coffre Ouvert) -> True
                                                                     Just (Coffre Ferme) -> True
+                                                                    Just (Tresor Ouvert) -> True
+                                                                    Just (Tresor Ferme) -> True
                                                                     Just (Porte NS Ferme) -> True
                                                                     Just (Porte NS Ouvert) -> False
                                                                     Just (Porte EO Ferme) -> True
@@ -242,7 +250,9 @@ updateKeyMap_post before after myMap = ((M.lookup before myMap) == Nothing) && (
 --Les valeur du coffre et pique sont inversé (SI ferme on renvoie ouvert et vis versa) pour effectuer un changement plus facilement ? Ou pas
 getCaseFromString :: String -> Case
 getCaseFromString entity | entity == "Coffre Ferme" = (Coffre Ouvert)
-                         | entity == "Coffre Ouvert" = (Coffre Ferme)       
+                         | entity == "Coffre Ouvert" = (Coffre Ferme)  
+                         | entity == "Tresor Ferme" = (Tresor Ouvert)       
+                         | entity == "Tresor Ouvert" = (Tresor Ferme)       
                          | entity == "Sortie" = Sortie
                          | entity == "Zombie" = Zombie
                          | entity == "Entree" = Entree
