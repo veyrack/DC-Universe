@@ -30,6 +30,7 @@ handlekeyEvents keyboardEvent kbd       | (keyboardEventKeyMotion keyboardEvent 
 -- | prise en compte des événements SDL2 pour mettre à jour l'état du clavier
 handleEvents :: [Event] -> Keyboard -> Keyboard
 handleEvents events kbd | (keypressed KeycodeE kbd) = foldl' (flip newhandleEvent) (S.filter (\x -> x /= KeycodeE) kbd) events
+                        | (keypressed KeycodeA kbd) = foldl' (flip newhandleEvent) (S.filter (\x -> x /= KeycodeA) kbd) events
                         | otherwise = foldl' (flip newhandleEvent) kbd events
 
 
