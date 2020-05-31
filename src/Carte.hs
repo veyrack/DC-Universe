@@ -109,6 +109,11 @@ auxcheckPortes ((Coord x y):xs) carte
   | ((objectOnPosition carte x y) == "Porte NS") && ((objectOnPosition carte (x-1) y) == "Mur") && ((objectOnPosition carte (x+1) y) == "Mur") = auxcheckPortes xs carte
   | otherwise = False
 
+--Verifie s'il y'a un seul trésor 
+checkTresor :: (Map Coord Case) -> Bool
+checkTresor carte = 
+  let tresor = M.keys $ filterWithKey (\k v -> (Just v) == (Just (Tresor Ferme))) carte in 
+                                                      if (length tresor)==1 then True else False
 -- |Fonction d'entree: Récupère l'entrée dans la carte pour pouvoir placer le joueur
 
 getEntree :: (Map Coord Case) -> Coord
@@ -281,7 +286,7 @@ getCaseFromString_post entity = entity == "Coffre Ferme" || entity == "Sortie"
 
 --Verifie si la carte est valide
 carteValide :: (Map Coord Case) -> Bool
-carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte
+carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte && checkTresor carte
 
 --Check si la case est vide
 checkCaseVide :: Coord -> (Map Coord Case) -> Bool
