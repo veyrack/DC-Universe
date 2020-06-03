@@ -611,6 +611,7 @@ gameLoop frameRate renderer tmap smap kbd gameState@(M.GameState (M.Translation 
   
   -- |Display debug
   displayDebug renderer
+  
   --M.collision2 gameState
 
 --Background Color : Ne pas modifier

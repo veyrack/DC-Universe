@@ -18,40 +18,46 @@ terr2 :: Terrain
 terr2 = initTerrain 100 100 (fromList [(Coord 10 10,Porte NS Ouvert)])
 
 gstate :: GameState
-gstate = initGameState (Translation 0 0) (Perso 350 350 North 90) terr --(Terrain 0 0 empty)
+gstate = initGameState (Translation 0 0) (Perso 350 350 North 90 empty) terr --(Terrain 0 0 empty)
 
 gstate2 :: GameState
-gstate2 = initGameState (Translation 0 0) (Perso 350 350 North 90) terr2 --(Terrain 0 0 empty)
+gstate2 = initGameState (Translation 0 0) (Perso 350 350 North 90 empty) terr2 --(Terrain 0 0 empty)
+
+gstate3 :: GameState
+gstate3 = initGameState (Translation 0 0) (Perso 350 350 North 90 (fromList [(Potion,0),(Masque,0)])) terr --(Terrain 0 0 empty)
+
+gstate4 :: GameState
+gstate4 = initGameState (Translation 0 0) (Perso 350 350 North 90 (fromList [(Potion,0),(Masque,1)])) terr
 
 changePv_spec0 = do
     describe "test 0 : changePv" $ do
         it "Met à jour les points de vie de son personnage (+10pv)" $
-            (changePv gstate 10) `shouldBe` gstate {perso = (Perso 350 350 North 100)}
+            (changePv gstate 10) `shouldBe` gstate {perso = (Perso 350 350 North 100 empty)}
 
 changePv_spec1 = do
     describe "test 1 : changePv" $ do
         it "Met à jour les points de vie de son personnage (-10pv)" $
-            (changePv gstate (-10)) `shouldBe` gstate {perso = (Perso 350 350 North 80)}
+            (changePv gstate (-10)) `shouldBe` gstate {perso = (Perso 350 350 North 80 empty)}
 
 moveLeft_spec = do
     describe "test : move left" $
         it "Deplace le personnage une fois a gauche" $
-            (moveLeft gstate) `shouldBe` gstate {translate = (Translation 4 0), perso = (Perso 350 350 West 90)}
+            (moveLeft gstate) `shouldBe` gstate {translate = (Translation 4 0), perso = (Perso 350 350 West 90 empty)}
 
 moveRight_spec = do
     describe "test : move right" $
         it "Deplace le personnage une fois a droite" $
-            (moveRight gstate) `shouldBe` gstate {translate = (Translation (-4) 0), perso = (Perso 350 350 East 90)}
+            (moveRight gstate) `shouldBe` gstate {translate = (Translation (-4) 0), perso = (Perso 350 350 East 90 empty)}
 
 moveUp_spec = do
     describe "test : move up" $
         it "Deplace le personnage une fois en haut" $
-            (moveUp gstate) `shouldBe` gstate {translate = (Translation 0 4), perso = (Perso 350 350 North 90)}
+            (moveUp gstate) `shouldBe` gstate {translate = (Translation 0 4), perso = (Perso 350 350 North 90 empty)}
 
 moveDown_spec = do
     describe "test : move down" $
         it "Deplace le personnage une fois en bas" $
-            (moveDown gstate) `shouldBe` gstate {translate = (Translation 0 (-4)), perso = (Perso 350 350 South 90)}
+            (moveDown gstate) `shouldBe` gstate {translate = (Translation 0 (-4)), perso = (Perso 350 350 South 90 empty)}
 
 openEntity_spec = do
     describe "test : open entity" $
@@ -77,24 +83,23 @@ closeDoor_spec = do
                                                                                                         
 openChest_spec = do
     describe "test : open chest" $
-        it "Ouvre un coffre initialement ferme et redonne de la vie" $
-            (openChest gstate "Coffre Ferme" 30 30) `shouldBe` gstate {perso = (Perso 350 350 North 100),
-                                                                    terrain = initTerrain 100 100 (fromList [(Coord 10 10,Pique Ferme),
-                                                                                                            (Coord 20 20,Porte NS Ferme),
-                                                                                                            (Coord 30 30,Coffre Ouvert),
-                                                                                                            (Coord 18 18,Sortie)
-                                                                                                            ])}
+        it "Ouvre un coffre initialement ferme et donne une potion de vie ou un masque" $
+            (openChest gstate3 "Coffre Ferme" 30 30) `shouldBe` gstate3 {perso = (Perso 350 350 North 90 (fromList [(Potion,1),(Masque,0)])),
+                                                                                terrain = (initTerrain 100 100 (fromList [(Coord 10 10,Pique Ferme),
+                                                                                                (Coord 20 20,Porte NS Ferme),
+                                                                                                (Coord 30 30,Coffre Ouvert),
+                                                                                                (Coord 18 18,Sortie)]))}
 
 testSortie_spec = do
     describe "test de sortie du jeu" $ 
-        it "Check si on se trouve bien sur une case de sortie" $ 
-            (testSortie gstate) `shouldBe` True
+        it "Check si le personnage peut accéder à la sortie (Il faut le trésor)" $ 
+            (testSortie gstate4) `shouldBe` True
 
 testPiege_spec = do
     describe "test piege" $
         it "Check si un piege s'active correctement en repoussant le perso et en enlevant de la vie" $
             (actionPiqueFerme gstate) `shouldBe` gstate {translate = (Translation 0 (-8)),
-                                                        perso = (Perso 350 350 North 80)}
+                                                        perso = (Perso 350 350 North 80 empty)}
 
 
 testShouldBe = do
