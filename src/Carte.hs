@@ -63,19 +63,19 @@ createTheMap (a:as) mymap x y lg
   |otherwise = createTheMap as mymap (x+1) y lg --lg bouge pas ici car c'est la conditions pour les espaces
 
 -- |Invariant pour la creation du terrain
-invariantCreateMap:: CInt -> CInt -> M.Map Coord Case -> Bool
+invariantCreateMap :: CInt -> CInt -> M.Map Coord Case -> Bool
 invariantCreateMap ht lg contenu = if (invariantObjets ht lg contenu) && (invariantMurs ht lg contenu) then True else False
 
 -- |Verifie que les objects sont à l'intérieur du rectangle délimitant le donjon
-invariantObjets:: CInt -> CInt -> M.Map Coord Case ->Bool
+invariantObjets :: CInt -> CInt -> M.Map Coord Case -> Bool
 invariantObjets ht lg carte= let liste = M.keys $ filterWithKey (\k v -> (Just v)/=(Just Mur)) carte in
   aux ht lg liste where
     aux ht lg ((Coord x y):xs) | x<= 0 || y <=0 || x>=lg || y>=ht =False
                                | xs==[] && (x>0 && y>0 && x<lg && y<ht) = True
-                               |otherwise = aux ht lg xs
+                               | otherwise = aux ht lg xs
 
 -- | Verifie que les murs forment bien un rectangle.
-invariantMurs::CInt -> CInt -> M.Map Coord Case ->Bool
+invariantMurs :: CInt -> CInt -> M.Map Coord Case -> Bool
 invariantMurs ht lg contenu= if (invmurshorizontals contenu 0 0 lg) && (invmurshorizontals contenu 0 ht lg) 
                                 && (invmursvertical contenu 0 0 ht) && (invmursvertical contenu lg 0 ht)
                                   then True
@@ -114,6 +114,15 @@ checkTresor :: (Map Coord Case) -> Bool
 checkTresor carte = 
   let tresor = M.keys $ filterWithKey (\k v -> (Just v) == (Just (Tresor Ferme))) carte in 
                                                       if (length tresor)==1 then True else False
+
+--Verifie si il existe un levier par cloture
+checkLevier :: (Map Coord Case) -> Bool
+checkLevier carte =
+  let levier = M.keys $ filterWithKey (\k v -> (Just v) == Just (Levier Ferme)) carte in
+    let piege = M.keys $ filterWithKey (\k v -> ((Just v) == Just (ClotureElectrique NS Ouvert)||
+                                                 (Just v) == Just (ClotureElectrique EO Ouvert))) carte in
+      if (length levier == length piege) then True else False
+
 -- |Fonction d'entree: Récupère l'entrée dans la carte pour pouvoir placer le joueur
 
 getEntree :: (Map Coord Case) -> Coord
@@ -286,7 +295,7 @@ getCaseFromString_post entity = entity == "Coffre Ferme" || entity == "Sortie"
 
 --Verifie si la carte est valide
 carteValide :: (Map Coord Case) -> Bool
-carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte && checkTresor carte
+carteValide carte = ((getEntree carte)/= (Coord (-1) (-1)) ) &&  ((getSortie carte)/= (Coord (-1) (-1))) && checkPorte carte && checkTresor carte && checkLevier carte
 
 --Check si la case est vide
 checkCaseVide :: Coord -> (Map Coord Case) -> Bool
