@@ -1,6 +1,7 @@
 # DCuniverse
-- Installer la librairie ttf pour les fonts. (sous ubuntu : sudo apt-get install libsdl-ttf2.0-dev )
+
 - Lancer le jeu en faisant `stack run` à la racine du repertoire
+- 
 - Pour lancer les test, utiliser `stack test`
 
 ## Avancement
@@ -24,6 +25,9 @@
 - Menu de jeu pour débuter ou relancer
 
 - IA de mob basique
+
+- Brouillard de guerre 
+
 
 ## Invariants
 
