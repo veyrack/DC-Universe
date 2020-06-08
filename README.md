@@ -17,9 +17,9 @@
 
 - Activation de pieges qui enlevent de la vie
 
-- Coffres qui rendent de la vie
+- Coffres qui donnent des potions ou le tresor
 
-- Fin de jeu lorsque l'on sors
+- Fin de jeu lorsque l'on sors avec le tresor
 
 - Menu de jeu pour débuter ou relancer
 
