@@ -1,7 +1,12 @@
 # DCuniverse
 
+Projet de l'UE PAF
+Master 1 2019/2020
+
+## Lancement
+
 - Lancer le jeu en faisant `stack run` à la racine du repertoire
-- 
+
 - Pour lancer les test, utiliser `stack test`
 
 ## Avancement
